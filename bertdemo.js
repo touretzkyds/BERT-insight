@@ -6,6 +6,7 @@ class Demo {
     // save model for accessibility from methods and console
     initModel(model) {
         this.model = model;
+        // this.answers = new Array();
         console.log('model loaded');
         document.getElementById('loading-icon').style.display = "none";
     }
@@ -23,7 +24,7 @@ class Demo {
                 answerText += `${idx}: ${ans.text} score: ${ans.score}\n`
             });
             console.log(answers);
-            answerTextBox.value = answerText;
+            answerTextBox.value = this.answers.length > 0 ? answerText : 'no predictions';
         });
     }
 }
