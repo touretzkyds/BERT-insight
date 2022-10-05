@@ -22,16 +22,24 @@
         <form action="javascript:demo.answerQuestion()" autocomplete="off">
             
             <label for="passage">Enter passage:</label><br>
-            <textarea id="passage" rows="4" cols="50">I have a dog and his name is Fido. He likes to chase cats but he does not like to chase cars.</textarea><br>
+            <textarea id="passage" rows="8" cols="80">
+John and Mary went to a party. Mary bought a gift for the host.
+John brought his guitar.
+At the party, Mary gave the host a bottle of wine.
+John played songs after dinner.
+Fred was also at the party. He brought his dog with him.
+            </textarea><br>
+
+
             
             <label for="question">Enter question:</label><br>
-            <textarea id="question" rows="4" cols="50">Does the dog chase cars?</textarea><br>
+            <textarea id="question" rows="4" cols="80">What instrument did John play?</textarea><br>
             <input type="submit" value="Submit"> <br>
         </form> 
     </div>
     <div id="outputs">
         <label>Answer:</label><br>
-        <textarea id="answer-textbox" rows=5 cols=80 wrap=on readonly></textarea>
+        <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea>
     </div>
 </body>
 </html>
