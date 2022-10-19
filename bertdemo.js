@@ -27,7 +27,7 @@ class Demo {
             answersTextBox.value = this.answers.length > 0 ? answersText : 'no predictions';
         });
     }
-
+}
 // trial code for plotly based heatmaps
 //     plotWeights(newPlot = false) {
 //         const rawData = this.model.model.artifacts.weightData
