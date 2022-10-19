@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>BERT Demo</title>
+
+    <link rel="stylesheet" href="style.css" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Load TensorFlow.js. This is required to use the qna model. -->
@@ -9,9 +12,8 @@
     <!-- Load the qna model. -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"> </script>
     <!-- Place your code in the script tag below. You can also use an external .js file -->
+    <script src="https://cdn.plot.ly/plotly-2.2.0.min.js"></script>
     <script src="bertdemo.js"></script>
-    <link rel="stylesheet" href="style.css" />
-    <title>BERT Demo</title>
 </head>
 <body>
     <div id="loading-icon">
@@ -37,9 +39,14 @@ Fred was also at the party. He brought his dog with him.
             <input type="submit" value="Submit"> <br>
         </form> 
     </div>
-    <div id="outputs">
+    <div id="output-text">
         <label>Answer:</label><br>
         <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea>
+    </div>
+    <div id = "output-visuals">
+        <div id = "heatmap">
+
+        </div>
     </div>
 </body>
 </html>
