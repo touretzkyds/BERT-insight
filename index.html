@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>BERT Demo</title>
-
     <link rel="stylesheet" href="style.css" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Load TensorFlow.js. This is required to use the qna model. -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
     <!-- Load the qna model. -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"> </script>
+    <script src="modules/qna.js"> </script>
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script src="https://cdn.plot.ly/plotly-2.2.0.min.js"></script>
     <script src="bertdemo.js"></script>
@@ -44,7 +44,8 @@ Fred was also at the party. He brought his dog with him.
         <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea>
     </div>
     <div id = "output-visuals">
-        <div id = "heatmap">
+        <div id = "startlogits-heatmap">
+        <div id = "endlogits-heatmap">
 
         </div>
     </div>
