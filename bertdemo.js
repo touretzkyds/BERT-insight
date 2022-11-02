@@ -55,33 +55,31 @@ class Demo {
 
     // trial code for plotly based heatmaps
     plotLogits(newPlot = false, logitType = 0) { // TODO: use logitType argument
-        const logitName = ['startlogits', 'endlogits'][logitType];
-        const rawData = this.answers[0].rawData,
-              tokenIds = rawData['allTokenIds'][0],
-              tokens = this.getTokensFromTokenIds(tokenIds),
+        const logitName = ['startlogits', 'endlogits'][logitType],
+              rawData = this.answers[0].rawData,
+              tokens = this.getTokensFromTokenIds(rawData['allTokenIds'][0]),
               startLogits = rawData['logits'][0],
-              endLogits = rawData['logits'][1];
-        console.log('tokens', tokens)
-        console.log('startLogits', startLogits)
-        console.log('endLogits', endLogits)
-        const passageLength = 90;
-        console.log('passageLength', passageLength)
+              endLogits = rawData['logits'][1],
+              passageLength = 70;
+            //   allLogits = (logitType == 0 ? startLogits : endLogits);
 
-        const allLogits = logitType == 0 ? startLogits : endLogits;
-        const logits = [...allLogits].slice(0, passageLength);
-        
+        this.logits = (
+            logitType == 0 ? startLogits : endLogits
+            )[0].slice(0, passageLength);
+        this.tokens = tokens.slice(0, passageLength);
+
         const data = [
             {
-                z: allLogits,
+                z: [this.logits],
                 type: "heatmap",
             }
         ];
         const layout = {
             title: {text: logitName},
             xaxis: {
-                // dtick: 1,
-                tickvals: d3.range(tokens.length),
-                ticktext: tokens,
+                dtick: 1,
+                tickvals: d3.range(this.tokens.length),
+                ticktext: this.tokens,
                 tickangle: 270,
             },
         };
