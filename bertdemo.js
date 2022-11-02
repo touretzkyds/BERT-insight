@@ -61,7 +61,6 @@ class Demo {
               startLogits = rawData['logits'][0],
               endLogits = rawData['logits'][1],
               passageLength = 70;
-            //   allLogits = (logitType == 0 ? startLogits : endLogits);
 
         this.logits = (
             logitType == 0 ? startLogits : endLogits
@@ -72,6 +71,7 @@ class Demo {
             {
                 z: [this.logits],
                 type: "heatmap",
+                coloraxis: 'coloraxis',
             }
         ];
         const layout = {
@@ -82,6 +82,13 @@ class Demo {
                 ticktext: this.tokens,
                 tickangle: 270,
             },
+            coloraxis: {cmin:-20, cmax:10},
+            yaxis: {
+                showticklabels: false,
+                ticks: "",
+                tickfont : {fontsize: 36},
+            },
+            height: 250,
         };
         // TODO: only do plotly.react and do not create fully new plots for changes
         if (newPlot) {
