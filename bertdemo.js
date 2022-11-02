@@ -80,7 +80,7 @@ class Demo {
             title: {text: logitName},
             xaxis: {
                 // dtick: 1,
-                tickvals: d3.range(passageLength),
+                tickvals: d3.range(tokens.length),
                 ticktext: tokens,
                 tickangle: 270,
             },
