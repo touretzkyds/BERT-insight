@@ -431,7 +431,7 @@
                     inputMask.push(0);
                     segmentIds.push(0);
                 }
-                return { inputIds: inputIds, inputMask: inputMask, segmentIds: segmentIds, origTokens: origTokens, tokenToOrigMap: tokenToOrigMap };
+                return { inputIds: inputIds, inputMask: inputMask, segmentIds: segmentIds, queryTokens: queryTokens, origTokens: origTokens, tokenToOrigMap: tokenToOrigMap };
             });
             return features;
         };
@@ -474,6 +474,7 @@
             return __awaiter(this, void 0, void 0, function () {
                 var features, inputIdArray, segmentIdArray, inputMaskArray, globalStep, batchSize, result, logits, answers, i;
                 var _this = this;
+                var rawData = {};
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -483,6 +484,9 @@
                             }
                             features = this.process(question, context, MAX_QUERY_LEN, MAX_SEQ_LEN);
                             inputIdArray = features.map(function (f) { return f.inputIds; });
+                            // console.log('inputIdArray', inputIdArray)
+                            rawData['allTokenIds'] = inputIdArray;
+                            // var tok = inputIdArray[0].map(idx => this.tokenizer.vocab[idx])
                             segmentIdArray = features.map(function (f) { return f.segmentIds; });
                             inputMaskArray = features.map(function (f) { return f.inputMask; });
                             globalStep = tf.scalar(1, 'int32');
@@ -501,17 +505,20 @@
                             return [4 /*yield*/, Promise.all([result[0].array(), result[1].array()])];
                         case 1:
                             logits = _a.sent();
+                            // console.log('logits', logits)
+                            rawData['logits'] = logits;
                             // dispose all intermediate tensors
                             globalStep.dispose();
                             result[0].dispose();
                             result[1].dispose();
                             answers = [];
                             for (i = 0; i < batchSize; i++) {
-                                answers.push(this.getBestAnswers(logits[0][i], logits[1][i], features[i].origTokens, features[i].tokenToOrigMap, context, i));
+                                answers.push(this.getBestAnswers(logits[0][i], logits[1][i], features[i].origTokens, features[i].tokenToOrigMap, context, i, rawData));
                             }
-                            return [2 /*return*/, answers.reduce(function (flatten, array) { return flatten.concat(array); }, [])
-                                    .sort(function (logitA, logitB) { return logitB.score - logitA.score; })
-                                    .slice(0, PREDICT_ANSWER_NUM)];
+                            let finalAnswer = [2 /*return*/, answers.reduce(function (flatten, array) { return flatten.concat(array); }, [])
+                            .sort(function (logitA, logitB) { return logitB.score - logitA.score; })
+                            .slice(0, PREDICT_ANSWER_NUM)]
+                            return finalAnswer;
                     }
                 });
             });
@@ -523,7 +530,7 @@
          * @param origTokens original tokens of the passage
          * @param tokenToOrigMap token to index mapping
          */
-        QuestionAndAnswerImpl.prototype.getBestAnswers = function (startLogits, endLogits, origTokens, tokenToOrigMap, context, docIndex) {
+        QuestionAndAnswerImpl.prototype.getBestAnswers = function (startLogits, endLogits, origTokens, tokenToOrigMap, context, docIndex, rawData) {
             var _a;
             // Model uses the closed interval [start, end] for indices.
             var startIndexes = this.getBestIndex(startLogits);
@@ -560,9 +567,8 @@
                     score: origResults[i].score,
                     startIndex: startIndex,
                     endIndex: endIndex,
-                    startLogits: startLogits,
-                    endLogits: endLogits,
                     origTokens: origTokens,
+                    rawData: rawData,
                 });
             }
             return answers;

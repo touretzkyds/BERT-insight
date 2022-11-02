@@ -1,8 +1,8 @@
 class Demo {
     constructor() {
         this.model = null;
-        this.question = null;
-        this.passage = null;
+        this.question = "";
+        this.passage = "";
         return
     }
 
@@ -19,19 +19,17 @@ class Demo {
     // create a parent function called respond to button click / question submit
     // }
     
-    getPassageSubwords() {
+    getTokensFromTokenIds(tokenIds) {
         // takes a passage and outputs a subword-generated passage. performs foll:
         // 1. tokenize passage, 2. convert tokens to words/subwords
         // eg. input: fanaticism over baseball, output: ▁fan, atic, ism, ▁over, ▁baseball
         
-        // tokenize passage
-        const tok_passage = this.model.tokenizer.tokenize(this.passage);
-        // generate subwords
-        const subwords = [];
-        tok_passage.forEach(token => {
-            subwords.push(this.model.tokenizer.vocab[token]);
+        // generate vocab
+        const tokens = [];
+        tokenIds.forEach(tok => {
+            tokens.push(this.model.tokenizer.vocab[tok]);
         })
-        return subwords;
+        return tokens;
     }
 
     async answerQuestion() {
@@ -41,8 +39,6 @@ class Demo {
 
         this.question = question;
         this.passage = passage;
-
-        this.passageSubwords = this.getPassageSubwords();
 
         let answersText = '';
 
@@ -60,23 +56,32 @@ class Demo {
     // trial code for plotly based heatmaps
     plotLogits(newPlot = false, logitType = 0) { // TODO: use logitType argument
         const logitName = ['startlogits', 'endlogits'][logitType];
-        const passageWords = this.answers[0].origTokens.map(tok => tok.text);
-        const passageLength = passageWords.length;
-        const allLogits = logitType == 0 ? this.answers[0].startLogits : this.answers[0].endLogits;
-        const logits = new Array([...new Float32Array(allLogits)].slice(8, passageLength+8));
+        const rawData = this.answers[0].rawData,
+              tokenIds = rawData['allTokenIds'][0],
+              tokens = this.getTokensFromTokenIds(tokenIds),
+              startLogits = rawData['logits'][0],
+              endLogits = rawData['logits'][1];
+        console.log('tokens', tokens)
+        console.log('startLogits', startLogits)
+        console.log('endLogits', endLogits)
+        const passageLength = 90;
+        console.log('passageLength', passageLength)
+
+        const allLogits = logitType == 0 ? startLogits : endLogits;
+        const logits = [...allLogits].slice(0, passageLength);
         
         const data = [
             {
-                z: logits,
+                z: allLogits,
                 type: "heatmap",
             }
         ];
         const layout = {
             title: {text: logitName},
             xaxis: {
-                dtick: 1,
+                // dtick: 1,
                 tickvals: d3.range(passageLength),
-                ticktext: passageWords,
+                ticktext: tokens,
                 tickangle: 270,
             },
         };
@@ -101,7 +106,7 @@ const demo = new Demo();
 
 // Load model
 // Notice there is no 'import' statement. 'qna' and 'tf' is
-// available on the index-page because of the script tag above.
+// available on the index-page because of the script tag.
 qna.load().then(model => {
     demo.initModel(model);
 });
