@@ -32,7 +32,7 @@ class Demo {
     }
 
     // get answers from qna model
-    answerQuestion() {
+    async answerQuestion() {
         const question = document.getElementById('question').value,
               passage = document.getElementById('passage').value,
               answersTextBox = document.getElementById('answer-textbox');
@@ -42,14 +42,13 @@ class Demo {
 
         let answersText = '';
 
-        this.model.findAnswers(question, passage).then(answers => {
-            this.answers = answers;
-            answers.forEach((ans, idx) => {
-                const ansText = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
-                answersText += `${idx}: ${ansText} | score: ${ans.score}\n`;
-            });
-            answersTextBox.value = this.answers.length > 0 ? answersText : 'no predictions';
+        const answers = await this.model.findAnswers(question, passage);
+        this.answers = answers;
+        answers.forEach((ans, idx) => {
+            const ansText = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
+            answersText += `${idx}: ${ansText} | score: ${ans.score}\n`;
         });
+        answersTextBox.value = this.answers.length > 0 ? answersText : 'no predictions';
     }
 
     // plotly based heatmaps
@@ -97,22 +96,18 @@ class Demo {
         }
     }
 
+    async respondToTextSubmit() {
+        await this.answerQuestion();
+        demo.plotLogits(false, 0);
+        demo.plotLogits(false, 1);
+    }
+
     async main() {
         // Load model
         // Notice there is no 'import' statement. 'qna' and 'tf' is
         // available on the index-page because of the script tag.
         qna.load().then(model => {
             demo.initModel(model);
-        });
-        
-        // respond to question submit button
-        document.addEventListener('submit', () => {
-            demo.answerQuestion();
-            // add timeout to process answers and then plot
-            setTimeout(() => {
-                demo.plotLogits(false, 0);
-                demo.plotLogits(false, 1);
-            }, 200);
         });
     }
 }
