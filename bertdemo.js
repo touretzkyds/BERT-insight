@@ -13,70 +13,65 @@ class Demo {
         document.getElementById('loading-icon').style.display = "none";
     }
 
-    // uodateQuestion() {
-    //     // TODO: move code from answerQuestion here and call this first
-    // create a parent function called respond to button click / question submit
-    // }
-    
+    // take an input of token ids and return a series of tokens
+    // eg. input: [2058, 24793, 2098], output: ▁over, joy, ed
+    // Note that start of a word is marked by an underscore '_'
     getTokensFromTokenIds(tokenIds) {
-        // takes a passage and outputs a subword-generated passage. performs foll:
-        // 1. tokenize passage, 2. convert tokens to words/subwords
-        // eg. input: fanaticism over baseball, output: ▁fan, atic, ism, ▁over, ▁baseball
-        
-        // generate vocab
         const tokens = [];
+        // search and add each id from vocab 
         tokenIds.forEach(tok => {
             tokens.push(this.model.tokenizer.vocab[tok]);
         })
         return tokens;
     }
 
-    // get answers from qna model
+    // extract question and passage from demo textboxes and find 
+    // answers using qna model inference 
     async answerQuestion() {
-        const question = document.getElementById('question').value,
-              passage = document.getElementById('passage').value,
-              answersTextBox = document.getElementById('answer-textbox');
+        // update question and passage from text boxes
+        this.question = document.getElementById('question').value;
+        this.passage = document.getElementById('passage').value;
 
-        this.question = question;
-        this.passage = passage;
+        // run qna inference with question and passage
+        this.answers = await this.model.findAnswers(this.question, 
+                                                    this.passage);
 
+        // format answers and display to the Answer textbox
         let answersText = '';
-
-        const answers = await this.model.findAnswers(question, passage);
-        this.answers = answers;
-        answers.forEach((ans, idx) => {
-            const ansText = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
-            answersText += `${idx}: ${ansText} | score: ${ans.score}\n`;
+        this.answers.forEach((ans, idx) => {
+            const txt = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
+            answersText += `${idx}: ${txt} | score: ${ans.score}\n`;
         });
-        answersTextBox.value = this.answers.length > 0 ? answersText : 'no predictions';
+        document.getElementById('answer-textbox').value = (
+            this.answers.length > 0 ? answersText : 'no predictions'
+        );
     }
 
-    // plotly based heatmaps
-    plotLogits(newPlot = false, logitType = 0) {
-        const logitName = ['startlogits', 'endlogits'][logitType],
-              rawData = this.model.rawData,
-              tokens = this.getTokensFromTokenIds(rawData['allTokenIds'][0]),
-              startLogits = rawData['logits'][0],
-              endLogits = rawData['logits'][1],
-              passageLength = rawData['tokensLength'] + 5;
-
-        this.logits = (logitType == 0 ? startLogits : endLogits
-            )[0].slice(0, passageLength);
-        this.tokens = tokens.slice(0, passageLength);
+    // plot the logits 
+    plotLogits(newPlot = false, id = 0) { //id = 0:start logits, 1:end logits
+        
+        const rawData = this.model.rawData,
+              plotId = ['startlogits-heatmap', 'endlogits-heatmap'][id],
+              plotTitle = ['Start Logits', 'End Logits'][id],
+              passageLength = rawData['tokensLength'] + 5, // display upto 5 [PAD] tokens
+              logits = rawData['logits'][id][0] // access start or end logits
+                            .slice(0, passageLength),
+              tokens = this.getTokensFromTokenIds(
+                                rawData['allTokenIds'][0]
+                            ).slice(0, passageLength);
 
         const data = [
             {
-                z: [this.logits],
+                z: [logits], // expected format is Array(Array)
                 type: "heatmap",
                 coloraxis: 'coloraxis',
             }
         ];
         const layout = {
-            title: {text: logitName},
+            title: {text: plotTitle},
             xaxis: {
-                dtick: 1,
-                tickvals: d3.range(this.tokens.length),
-                ticktext: this.tokens,
+                tickvals: d3.range(tokens.length),
+                ticktext: tokens,
                 tickangle: 270,
                 tickfont : {size: 18},
                 automargin: true,
@@ -88,26 +83,24 @@ class Demo {
             },
             height: 260,
         };
-        // TODO: only do plotly.react and do not create fully new plots for changes
         if (newPlot) {
-            Plotly.newPlot(`${logitName}-heatmap`, data, layout);
+            Plotly.newPlot(`${plotId}`, data, layout);
         } else {
-            Plotly.react(`${logitName}-heatmap`, data, layout);
+            Plotly.react(`${plotId}`, data, layout);
         }
     }
 
+    // answer the question and plot logits
     async respondToTextSubmit() {
         await this.answerQuestion();
-        demo.plotLogits(false, 0);
-        demo.plotLogits(false, 1);
+        this.plotLogits(false, 0);
+        this.plotLogits(false, 1);
     }
-
+    
     async main() {
-        // Load model
-        // Notice there is no 'import' statement. 'qna' and 'tf' is
-        // available on the index-page because of the script tag.
+        // Load qna model
         qna.load().then(model => {
-            demo.initModel(model);
+            this.initModel(model);
         });
     }
 }
