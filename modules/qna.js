@@ -424,6 +424,7 @@
                 }
                 tokens.push(SEP_INDEX);
                 segmentIds.push(1);
+                const tokensLength = tokens.length;
                 var inputIds = tokens;
                 var inputMask = inputIds.map(function (id) { return 1; });
                 while ((inputIds.length < maxSeqLen)) {
@@ -431,11 +432,19 @@
                     inputMask.push(0);
                     segmentIds.push(0);
                 }
-                return { inputIds: inputIds, inputMask: inputMask, segmentIds: segmentIds, queryTokens: queryTokens, origTokens: origTokens, tokenToOrigMap: tokenToOrigMap };
+                return {inputIds: inputIds, 
+                        inputMask: inputMask, 
+                        segmentIds: segmentIds, 
+                        queryTokens: queryTokens, 
+                        origTokens: origTokens, 
+                        tokenToOrigMap: tokenToOrigMap, 
+                        tokensLength: tokensLength,
+                    };
             });
             return features;
         };
         QuestionAndAnswerImpl.prototype.load = function () {
+            this.rawData = {}; // init data structure to cache intermediate data for bertdemo 
             return __awaiter(this, void 0, void 0, function () {
                 var _a, batchSize, inputIds, segmentIds, inputMask, _b;
                 return __generator(this, function (_c) {
@@ -472,9 +481,8 @@
          */
         QuestionAndAnswerImpl.prototype.findAnswers = function (question, context) {
             return __awaiter(this, void 0, void 0, function () {
-                var features, inputIdArray, segmentIdArray, inputMaskArray, globalStep, batchSize, result, logits, answers, i;
+                var features, inputIdArray, segmentIdArray, inputMaskArray, globalStep, batchSize, result, logits, answers, i, tokensLength;
                 var _this = this;
-                var rawData = {};
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -484,13 +492,14 @@
                             }
                             features = this.process(question, context, MAX_QUERY_LEN, MAX_SEQ_LEN);
                             inputIdArray = features.map(function (f) { return f.inputIds; });
-                            // console.log('inputIdArray', inputIdArray)
-                            rawData['allTokenIds'] = inputIdArray;
-                            // var tok = inputIdArray[0].map(idx => this.tokenizer.vocab[idx])
                             segmentIdArray = features.map(function (f) { return f.segmentIds; });
                             inputMaskArray = features.map(function (f) { return f.inputMask; });
+                            tokensLength = features.map(function (f) { return f.tokensLength; });
                             globalStep = tf.scalar(1, 'int32');
                             batchSize = features.length;
+                            // save to raw data for bertdemo 
+                            this.rawData['allTokenIds'] = inputIdArray;
+                            this.rawData['tokensLength'] = tokensLength[0];
                             result = tf.tidy(function () {
                                 var inputIds = tf.tensor2d(inputIdArray, [batchSize, INPUT_SIZE], 'int32');
                                 var segmentIds = tf.tensor2d(segmentIdArray, [batchSize, INPUT_SIZE], 'int32');
@@ -505,20 +514,19 @@
                             return [4 /*yield*/, Promise.all([result[0].array(), result[1].array()])];
                         case 1:
                             logits = _a.sent();
-                            // console.log('logits', logits)
-                            rawData['logits'] = logits;
+                            // save to raw data for bertdemo 
+                            this.rawData['logits'] = logits;
                             // dispose all intermediate tensors
                             globalStep.dispose();
                             result[0].dispose();
                             result[1].dispose();
                             answers = [];
                             for (i = 0; i < batchSize; i++) {
-                                answers.push(this.getBestAnswers(logits[0][i], logits[1][i], features[i].origTokens, features[i].tokenToOrigMap, context, i, rawData));
+                                answers.push(this.getBestAnswers(logits[0][i], logits[1][i], features[i].origTokens, features[i].tokenToOrigMap, context, i));
                             }
-                            let finalAnswer = [2 /*return*/, answers.reduce(function (flatten, array) { return flatten.concat(array); }, [])
+                            return [2 /*return*/, answers.reduce(function (flatten, array) { return flatten.concat(array); }, [])
                             .sort(function (logitA, logitB) { return logitB.score - logitA.score; })
-                            .slice(0, PREDICT_ANSWER_NUM)]
-                            return finalAnswer;
+                            .slice(0, PREDICT_ANSWER_NUM)];
                     }
                 });
             });
@@ -530,7 +538,7 @@
          * @param origTokens original tokens of the passage
          * @param tokenToOrigMap token to index mapping
          */
-        QuestionAndAnswerImpl.prototype.getBestAnswers = function (startLogits, endLogits, origTokens, tokenToOrigMap, context, docIndex, rawData) {
+        QuestionAndAnswerImpl.prototype.getBestAnswers = function (startLogits, endLogits, origTokens, tokenToOrigMap, context, docIndex) {
             var _a;
             // Model uses the closed interval [start, end] for indices.
             var startIndexes = this.getBestIndex(startLogits);
@@ -568,7 +576,6 @@
                     startIndex: startIndex,
                     endIndex: endIndex,
                     origTokens: origTokens,
-                    rawData: rawData,
                 });
             }
             return answers;

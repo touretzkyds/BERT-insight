@@ -11,7 +11,6 @@ class Demo {
         this.model = model;
         console.log('model loaded');
         document.getElementById('loading-icon').style.display = "none";
-        // this.answerQuestion();
     }
 
     // uodateQuestion() {
@@ -32,7 +31,8 @@ class Demo {
         return tokens;
     }
 
-    async answerQuestion() {
+    // get answers from qna model
+    answerQuestion() {
         const question = document.getElementById('question').value,
               passage = document.getElementById('passage').value,
               answersTextBox = document.getElementById('answer-textbox');
@@ -51,19 +51,17 @@ class Demo {
             answersTextBox.value = this.answers.length > 0 ? answersText : 'no predictions';
         });
     }
-// }
 
-    // trial code for plotly based heatmaps
-    plotLogits(newPlot = false, logitType = 0) { // TODO: use logitType argument
+    // plotly based heatmaps
+    plotLogits(newPlot = false, logitType = 0) {
         const logitName = ['startlogits', 'endlogits'][logitType],
-              rawData = this.answers[0].rawData,
+              rawData = this.model.rawData,
               tokens = this.getTokensFromTokenIds(rawData['allTokenIds'][0]),
               startLogits = rawData['logits'][0],
               endLogits = rawData['logits'][1],
-              passageLength = 70;
+              passageLength = rawData['tokensLength'] + 5;
 
-        this.logits = (
-            logitType == 0 ? startLogits : endLogits
+        this.logits = (logitType == 0 ? startLogits : endLogits
             )[0].slice(0, passageLength);
         this.tokens = tokens.slice(0, passageLength);
 
@@ -81,14 +79,15 @@ class Demo {
                 tickvals: d3.range(this.tokens.length),
                 ticktext: this.tokens,
                 tickangle: 270,
+                tickfont : {size: 18},
+                automargin: true,
             },
             coloraxis: {cmin:-20, cmax:10},
             yaxis: {
                 showticklabels: false,
                 ticks: "",
-                tickfont : {fontsize: 36},
             },
-            height: 250,
+            height: 260,
         };
         // TODO: only do plotly.react and do not create fully new plots for changes
         if (newPlot) {
@@ -97,31 +96,28 @@ class Demo {
             Plotly.react(`${logitName}-heatmap`, data, layout);
         }
     }
+
+    async main() {
+        // Load model
+        // Notice there is no 'import' statement. 'qna' and 'tf' is
+        // available on the index-page because of the script tag.
+        qna.load().then(model => {
+            demo.initModel(model);
+        });
+        
+        // respond to question submit button
+        document.addEventListener('submit', () => {
+            demo.answerQuestion();
+            // add timeout to process answers and then plot
+            setTimeout(() => {
+                demo.plotLogits(false, 0);
+                demo.plotLogits(false, 1);
+            }, 200);
+        });
+    }
 }
 
-// class Plots extends Demo {
-//     constructor() {
-//         super();
-//     }
-// }
-
-// TODO: main fn
 const demo = new Demo();
-// const plots = new Plots();
-
-// Load model
-// Notice there is no 'import' statement. 'qna' and 'tf' is
-// available on the index-page because of the script tag.
-qna.load().then(model => {
-    demo.initModel(model);
-});
-
-// TODO: use this fn for async update
-document.addEventListener('submit', (e) => {
-    // Store reference to form to make later code easier to read
-    demo.answerQuestion().then(data => {
-        // Do the work here
-        demo.plotLogits(false, 0);
-        demo.plotLogits(false, 1);
-    });
+document.addEventListener("DOMContentLoaded", () => {
+    demo.main().catch(e => console.error(e));
 });
