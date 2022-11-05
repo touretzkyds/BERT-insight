@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BERT Demo</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Load TensorFlow.js. This is required to use the qna model. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
+    <!-- Load the qna model. -->
+    <script src="modules/qna.js"> </script>
+    <!-- Place your code in the script tag below. You can also use an external .js file -->
+    <!-- <script src="https://cdn.plot.ly/plotly-2.2.0.min.js"></script> -->
+    <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+    <script src="bertdemo2.js"></script>
+</head>
+<body>
+    <div id="loading-icon">
+        Loading model ... 
+        <img src="https://i.stack.imgur.com/kOnzy.gif" alt="loading-icon.gif"/>
+    </div>
+    <div id = "inputs"> 
+        <form action="javascript:demo.respondToTextSubmit()" autocomplete="off">
+            
+            <label for="passage">Enter passage:</label><br>
+            <textarea id="passage" rows="8" cols="80">
+John and Mary went to a party. Mary bought a superamazing gift for the host.
+John brought his guitar.
+At the party, Mary gave the host a bottle of wine.
+John played songs after dinner.
+Fred was also at the party. He brought his dog with him.
+            </textarea><br>
+
+
+            
+            <label for="question">Enter question:</label><br>
+            <textarea id="question" rows="2" cols="80">What instrument did John play?</textarea><br>
+            <input type="submit" value="Submit"> <br>
+        </form> 
+    </div>
+    <div id="output-text">
+        <label>Answer:</label><br>
+        <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea>
+    </div>
+    <div id = "output-visuals">
+        <div id = "startlogits-heatmap">
+        <div id = "endlogits-heatmap">
+
+        </div>
+    </div>
+</body>
+</html>
