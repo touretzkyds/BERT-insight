@@ -2,7 +2,6 @@ class Demo {
     constructor() {
         this.qna = "Not initialized";
         this.updateInputsFromDocument();
-        return
     }
 
     // save model for accessibility from methods and console
@@ -92,7 +91,7 @@ class Demo {
 
     // answer the question and plot logits
     async respondToTextSubmit() {
-        this.updateInputsFromDocument();
+        this.updateInputsFromDocument(); // update inputs before running qna
         await this.answerQuestion();
         this.plotLogits(false, 0);
         this.plotLogits(false, 1);
