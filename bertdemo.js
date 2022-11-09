@@ -1,6 +1,6 @@
 class Demo {
     constructor() {
-        this.model = null;
+        this.qna = null;
         this.question = "";
         this.passage = "";
         return
@@ -8,7 +8,7 @@ class Demo {
 
     // save model for accessibility from methods and console
     initModel(model) {
-        this.model = model;
+        this.qna = model;
         console.log('model loaded');
         document.getElementById('loading-icon').style.display = "none";
     }
@@ -20,7 +20,7 @@ class Demo {
         const tokens = [];
         // search and add each id from vocab 
         tokenIds.forEach(tok => {
-            tokens.push(this.model.tokenizer.vocab[tok]);
+            tokens.push(this.qna.tokenizer.vocab[tok]);
         })
         return tokens;
     }
@@ -33,7 +33,7 @@ class Demo {
         this.passage = document.getElementById('passage').value;
 
         // run qna inference with question and passage
-        this.answers = await this.model.findAnswers(this.question, 
+        this.answers = await this.qna.findAnswers(this.question, 
                                                     this.passage);
 
         // format answers and display to the Answer textbox
@@ -50,7 +50,7 @@ class Demo {
     // plot the logits 
     plotLogits(newPlot = false, id = 0) { //id = 0:start logits, 1:end logits
         
-        const rawData = this.model.rawData,
+        const rawData = this.qna.rawData,
               plotId = ['startlogits-heatmap', 'endlogits-heatmap'][id],
               plotTitle = ['Start Logits', 'End Logits'][id],
               passageLength = rawData['tokensLength'] + 5, // display upto 5 [PAD] tokens
