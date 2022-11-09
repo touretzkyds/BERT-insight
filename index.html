@@ -13,7 +13,6 @@
     <script src="modules/qna.js"> </script>
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script src="https://cdn.plot.ly/plotly-2.2.0.min.js"></script>
-    <script src="bertdemo.js"></script>
 </head>
 <body>
     <div id="loading-icon">
@@ -32,10 +31,10 @@ John played songs after dinner.
 Fred was also at the party. He brought his dog with him.
             </textarea><br>
 
-
-            
             <label for="question">Enter question:</label><br>
-            <textarea id="question" rows="4" cols="80">What instrument did John play?</textarea><br>
+            <textarea id="question" rows="4" cols="80">
+What instrument did John play?
+            </textarea><br>
             <input type="submit" value="Submit"> <br>
         </form> 
     </div>
@@ -44,10 +43,9 @@ Fred was also at the party. He brought his dog with him.
         <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea>
     </div>
     <div id = "output-visuals">
-        <div id = "startlogits-heatmap">
-        <div id = "endlogits-heatmap">
-
-        </div>
+        <div id = "startlogits-heatmap"></div>
+        <div id = "endlogits-heatmap"></div>
     </div>
+    <script src="bertdemo.js"></script>
 </body>
 </html>

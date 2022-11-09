@@ -1,8 +1,7 @@
 class Demo {
     constructor() {
-        this.qna = null;
-        this.question = "";
-        this.passage = "";
+        this.qna = "Not initialized";
+        this.updateInputsFromDocument();
         return
     }
 
@@ -25,16 +24,17 @@ class Demo {
         return tokens;
     }
 
-    // extract question and passage from demo textboxes and find 
-    // answers using qna model inference 
-    async answerQuestion() {
-        // update question and passage from text boxes
+    updateInputsFromDocument() {
+        // update question and passage from demo text boxes
         this.question = document.getElementById('question').value;
         this.passage = document.getElementById('passage').value;
+    }
 
+    // find and update answers using qna model inference 
+    async answerQuestion() {
         // run qna inference with question and passage
         this.answers = await this.qna.findAnswers(this.question, 
-                                                    this.passage);
+                                                  this.passage);
 
         // format answers and display to the Answer textbox
         let answersText = '';
@@ -53,12 +53,12 @@ class Demo {
         const rawData = this.qna.rawData,
               plotId = ['startlogits-heatmap', 'endlogits-heatmap'][id],
               plotTitle = ['Start Logits', 'End Logits'][id],
-              passageLength = rawData['tokensLength'] + 5, // display upto 5 [PAD] tokens
+              truncateLength = rawData['tokensLength'] + 5, // display 5 [PAD] tokens
               logits = rawData['logits'][id][0] // access start or end logits
-                            .slice(0, passageLength),
+                            .slice(0, truncateLength),
               tokens = this.getTokensFromTokenIds(
                                 rawData['allTokenIds'][0]
-                            ).slice(0, passageLength);
+                            ).slice(0, truncateLength);
 
         const data = [
             {
@@ -92,6 +92,7 @@ class Demo {
 
     // answer the question and plot logits
     async respondToTextSubmit() {
+        this.updateInputsFromDocument();
         await this.answerQuestion();
         this.plotLogits(false, 0);
         this.plotLogits(false, 1);
