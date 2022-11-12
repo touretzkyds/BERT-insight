@@ -59,9 +59,12 @@ class Demo {
                                 rawData['allTokenIds'][0]
                             ).slice(0, truncateLength);
 
+        const z = logits.reverse().map(x => [x]); // expected format is Array(Array)
+                
         const data = [
             {
-                z: [logits], // expected format is Array(Array)
+                z: z,
+                yaxis: "y2",
                 type: "heatmap",
                 coloraxis: 'coloraxis',
             }
@@ -69,18 +72,31 @@ class Demo {
         const layout = {
             title: {text: plotTitle},
             xaxis: {
-                tickvals: d3.range(tokens.length),
-                ticktext: tokens,
-                tickangle: 270,
-                tickfont : {size: 18},
-                automargin: true,
-            },
-            coloraxis: {cmin:-20, cmax:10},
-            yaxis: {
                 showticklabels: false,
                 ticks: "",
+                domain:[0.55, 1],
             },
-            height: 260,
+            yaxis2: {
+                dtick: 1,
+                tickvals: d3.range(tokens.length),
+                ticktext: tokens.reverse(),
+                tickfont : {size: 16},
+                anchor: "free",
+                side: "right",
+                automargin: true,
+                ticks: "",
+            },
+            coloraxis: {
+                cmin: -20, 
+                cmax: 10, 
+                showscale: false
+            },
+            height: 20 * tokens.length,
+            width: 380,
+            // TODO: scale width more for cases with very long tokens
+            // const longest_tok_width = tokens.reduce(
+            //     function (a, b) {return a.length > b.length ? a : b;}).length;
+
         };
         if (newPlot) {
             Plotly.newPlot(`${plotId}`, data, layout);
