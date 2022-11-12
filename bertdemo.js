@@ -1,12 +1,12 @@
 class Demo {
     constructor() {
-        this.qna = "Not initialized";
+        this.model = "Not initialized";
         this.updateInputsFromDocument();
     }
 
     // save model for accessibility from methods and console
     initModel(model) {
-        this.qna = model;
+        this.model = model;
         console.log('model loaded');
         document.getElementById('loading-icon').style.display = "none";
     }
@@ -18,7 +18,7 @@ class Demo {
         const tokens = [];
         // search and add each id from vocab 
         tokenIds.forEach(tok => {
-            tokens.push(this.qna.tokenizer.vocab[tok]);
+            tokens.push(this.model.tokenizer.vocab[tok]);
         })
         return tokens;
     }
@@ -32,7 +32,7 @@ class Demo {
     // find and update answers using qna model inference 
     async answerQuestion() {
         // run qna inference with question and passage
-        this.answers = await this.qna.findAnswers(this.question, 
+        this.answers = await this.model.findAnswers(this.question, 
                                                   this.passage);
 
         // format answers and display to the Answer textbox
@@ -49,7 +49,7 @@ class Demo {
     // plot the logits 
     plotLogits(newPlot = false, id = 0) { //id = 0:start logits, 1:end logits
         
-        const rawData = this.qna.rawData,
+        const rawData = this.model.rawData,
               plotId = ['startlogits-heatmap', 'endlogits-heatmap'][id],
               plotTitle = ['Start Logits', 'End Logits'][id],
               truncateLength = rawData['tokensLength'] + 5, // display 5 [PAD] tokens
