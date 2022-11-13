@@ -509,9 +509,11 @@
                                     segment_ids: segmentIds,
                                     input_mask: inputMask,
                                     global_step: globalStep
-                                }, ['start_logits', 'end_logits']);
+                                }, ['start_logits', 'end_logits',
+				    'bert/encoder/layer_0/bottleneck/input/dense/bias',
+				    'bert/encoder/layer_0/attention/self/MatMul']);
                             });
-                            return [4 /*yield*/, Promise.all([result[0].array(), result[1].array()])];
+                        return [4 /*yield*/, Promise.all([result[0].array(), result[1].array(), result[2].array(), result[3].array()])];
                         case 1:
                             logits = _a.sent();
                             // save to raw data for bertdemo 
