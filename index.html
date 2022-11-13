@@ -13,41 +13,45 @@
     <script src="modules/qna.js"> </script>
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script src="https://cdn.plot.ly/plotly-2.2.0.min.js"></script>
-    <script src="bertdemo.js"></script>
+    <script src=https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.3.0/math.min.js></script>
 </head>
 <body>
     <div id="loading-icon">
         Loading model ... 
         <img src="https://i.stack.imgur.com/kOnzy.gif" alt="loading-icon.gif"/>
     </div>
-    <div id = "inputs"> 
-        <form action="javascript:demo.respondToTextSubmit()" autocomplete="off">
-            
-            <label for="passage">Enter passage:</label><br>
-            <textarea id="passage" rows="8" cols="80">
+    <div id = "texts-plots-container">
+        <div id = "inputs"> 
+            <form action="javascript:demo.respondToTextSubmit()" autocomplete="off">
+                
+                <label for="passage">Enter passage:</label><br>
+                <textarea id="passage" rows="8" cols="80">
 John and Mary went to a party. Mary bought a superamazing gift for the host.
 John brought his guitar.
 At the party, Mary gave the host a bottle of wine.
 John played songs after dinner.
 Fred was also at the party. He brought his dog with him.
-            </textarea><br>
+                </textarea><br>
 
-
-            
-            <label for="question">Enter question:</label><br>
-            <textarea id="question" rows="4" cols="80">What instrument did John play?</textarea><br>
-            <input type="submit" value="Submit"> <br>
-        </form> 
-    </div>
-    <div id="output-text">
-        <label>Answer:</label><br>
-        <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea>
-    </div>
-    <div id = "output-visuals">
-        <div id = "startlogits-heatmap">
-        <div id = "endlogits-heatmap">
-
+                <label for="question">Enter question:</label><br>
+                <textarea id="question" rows="4" cols="80">
+What instrument did John play?
+                </textarea><br>
+                <input type="submit" value="Submit"> <br>
+            </form> 
+            <div id="output-text">
+                <label>Answer:</label><br>
+                <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea>
+            </div>
+        </div>
+        
+        <div id = "output-visuals">
+            <div id = "startlogits-heatmap"></div>
+            <div id = "endlogits-heatmap"></div>
         </div>
     </div>
+    
+    
+    <script src="bertdemo.js"></script>
 </body>
 </html>

@@ -3,3 +3,11 @@
     overflow: auto;
     height: 100px;
 }
+
+#texts-plots-container {
+    display: flex;
+}
+
+#output-visuals {
+    display: flex;
+}

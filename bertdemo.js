@@ -1,9 +1,7 @@
 class Demo {
     constructor() {
-        this.model = null;
-        this.question = "";
-        this.passage = "";
-        return
+        this.model = "Not initialized";
+        this.updateInputsFromDocument();
     }
 
     // save model for accessibility from methods and console
@@ -13,101 +11,112 @@ class Demo {
         document.getElementById('loading-icon').style.display = "none";
     }
 
-    // uodateQuestion() {
-    //     // TODO: move code from answerQuestion here and call this first
-    // create a parent function called respond to button click / question submit
-    // }
-    
+    // take an input of token ids and return a series of tokens
+    // eg. input: [2058, 24793, 2098], output: ▁over, joy, ed
+    // Note that start of a word is marked by an underscore '_'
     getTokensFromTokenIds(tokenIds) {
-        // takes a passage and outputs a subword-generated passage. performs foll:
-        // 1. tokenize passage, 2. convert tokens to words/subwords
-        // eg. input: fanaticism over baseball, output: ▁fan, atic, ism, ▁over, ▁baseball
-        
-        // generate vocab
         const tokens = [];
+        // search and add each id from vocab 
         tokenIds.forEach(tok => {
             tokens.push(this.model.tokenizer.vocab[tok]);
         })
         return tokens;
     }
 
-    // get answers from qna model
-    async answerQuestion() {
-        const question = document.getElementById('question').value,
-              passage = document.getElementById('passage').value,
-              answersTextBox = document.getElementById('answer-textbox');
-
-        this.question = question;
-        this.passage = passage;
-
-        let answersText = '';
-
-        const answers = await this.model.findAnswers(question, passage);
-        this.answers = answers;
-        answers.forEach((ans, idx) => {
-            const ansText = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
-            answersText += `${idx}: ${ansText} | score: ${ans.score}\n`;
-        });
-        answersTextBox.value = this.answers.length > 0 ? answersText : 'no predictions';
+    updateInputsFromDocument() {
+        // update question and passage from demo text boxes
+        this.question = document.getElementById('question').value;
+        this.passage = document.getElementById('passage').value;
     }
 
-    // plotly based heatmaps
-    plotLogits(newPlot = false, logitType = 0) {
-        const logitName = ['startlogits', 'endlogits'][logitType],
-              rawData = this.model.rawData,
-              tokens = this.getTokensFromTokenIds(rawData['allTokenIds'][0]),
-              startLogits = rawData['logits'][0],
-              endLogits = rawData['logits'][1],
-              passageLength = rawData['tokensLength'] + 5;
+    // find and update answers using qna model inference 
+    async answerQuestion() {
+        // run qna inference with question and passage
+        this.answers = await this.model.findAnswers(this.question, 
+                                                  this.passage);
 
-        this.logits = (logitType == 0 ? startLogits : endLogits
-            )[0].slice(0, passageLength);
-        this.tokens = tokens.slice(0, passageLength);
+        // format answers and display to the Answer textbox
+        let answersText = '';
+        this.answers.forEach((ans, idx) => {
+            const txt = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
+            answersText += `${idx}: ${txt} | score: ${ans.score.toFixed(3)}\n`;
+        });
+        document.getElementById('answer-textbox').value = (
+            this.answers.length > 0 ? answersText : 'no predictions'
+        );
+    }
 
+    // plot the logits 
+    plotLogits(newPlot = false, id = 0) { //id = 0:start logits, 1:end logits
+        
+        const rawData = this.model.rawData,
+              plotId = ['startlogits-heatmap', 'endlogits-heatmap'][id],
+              plotTitle = ['Start Logits', 'End Logits'][id],
+              truncateLength = rawData['tokensLength'] + 5, // display 5 [PAD] tokens
+              logits = rawData['logits'][id][0] // access start or end logits
+                            .slice(0, truncateLength),
+              tokens = this.getTokensFromTokenIds(
+                                rawData['allTokenIds'][0]
+                            ).slice(0, truncateLength);
+
+        const z = logits.reverse().map(x => [x]); // expected format is Array(Array)
+                
         const data = [
             {
-                z: [this.logits],
+                z: z,
+                yaxis: "y2",
                 type: "heatmap",
                 coloraxis: 'coloraxis',
             }
         ];
         const layout = {
-            title: {text: logitName},
+            title: {text: plotTitle},
             xaxis: {
-                dtick: 1,
-                tickvals: d3.range(this.tokens.length),
-                ticktext: this.tokens,
-                tickangle: 270,
-                tickfont : {size: 18},
-                automargin: true,
-            },
-            coloraxis: {cmin:-20, cmax:10},
-            yaxis: {
                 showticklabels: false,
                 ticks: "",
+                domain:[0.55, 1],
             },
-            height: 260,
+            yaxis2: { // yaxis2 helps left align ticks (#1)
+                dtick: 1,
+                tickvals: d3.range(tokens.length),
+                ticktext: tokens.reverse(),
+                tickfont : {size: 16},
+                anchor: "free",
+                side: "right",
+                automargin: true,
+                ticks: "",
+            },
+            coloraxis: {
+                cmin: -20, 
+                cmax: 10, 
+                showscale: false
+            },
+            height: 20 * tokens.length,
+            width: 380,
+            // TODO: scale width more for cases with very long tokens
+            // const longest_tok_width = tokens.reduce(
+            //     function (a, b) {return a.length > b.length ? a : b;}).length;
+
         };
-        // TODO: only do plotly.react and do not create fully new plots for changes
         if (newPlot) {
-            Plotly.newPlot(`${logitName}-heatmap`, data, layout);
+            Plotly.newPlot(`${plotId}`, data, layout);
         } else {
-            Plotly.react(`${logitName}-heatmap`, data, layout);
+            Plotly.react(`${plotId}`, data, layout);
         }
     }
 
+    // answer the question and plot logits
     async respondToTextSubmit() {
+        this.updateInputsFromDocument(); // update inputs before running qna
         await this.answerQuestion();
-        demo.plotLogits(false, 0);
-        demo.plotLogits(false, 1);
+        this.plotLogits(false, 0);
+        this.plotLogits(false, 1);
     }
-
+    
     async main() {
-        // Load model
-        // Notice there is no 'import' statement. 'qna' and 'tf' is
-        // available on the index-page because of the script tag.
+        // Load qna model
         qna.load().then(model => {
-            demo.initModel(model);
+            this.initModel(model);
         });
     }
 }
