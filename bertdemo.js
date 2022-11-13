@@ -39,7 +39,7 @@ class Demo {
         let answersText = '';
         this.answers.forEach((ans, idx) => {
             const txt = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
-            answersText += `${idx}: ${txt} | score: ${ans.score}\n`;
+            answersText += `${idx}: ${txt} | score: ${ans.score.toFixed(3)}\n`;
         });
         document.getElementById('answer-textbox').value = (
             this.answers.length > 0 ? answersText : 'no predictions'
@@ -76,7 +76,7 @@ class Demo {
                 ticks: "",
                 domain:[0.55, 1],
             },
-            yaxis2: {
+            yaxis2: { // yaxis2 helps left align ticks (#1)
                 dtick: 1,
                 tickvals: d3.range(tokens.length),
                 ticktext: tokens.reverse(),
