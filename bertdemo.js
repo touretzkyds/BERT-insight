@@ -34,6 +34,8 @@ class Demo {
     async answerQuestion() {
         // run qna inference with question and passage
         [this.answers, this.answersRawData] = await this.model.findAnswers(this.question, this.passage);
+        // save the number of answers received
+        this.numAnswers = this.answers.length;
     }
 
     // clear answer display before computing new answers
@@ -48,7 +50,7 @@ class Demo {
     // display "no predictions" or formatted answers computed by qna
     async displayAnswers() {
         // if no predictions
-        if (this.answers.length == 0) {
+        if (this.numAnswers == 0) {
             document.getElementById('no-pred').innerHTML = "no predictions";
         }
         
@@ -124,51 +126,59 @@ class Demo {
     }
 
     initLeaderLines() {
+        // initialize array of 5 leaderlines
+        this.leaderLines = [];
+        for (var i=0; i<5; ++i) {
+            const anchor1 = document.getElementById('no-pred'); // dummy elem
+            const anchor2 = document.getElementById(`answer-${i+1}`); // dummy elem
+            const line = new LeaderLine(
+                anchor1, anchor2,
+                {
+                    path: 'grid',
+                    color: 'black',
+                    hide: true,
+                    startPlug: 'arrow1',
+                    startSocket: 'right', 
+                    endSocket: 'left',
+                    middleLabel: `${i+1}`,
+                    size: 0.5,
+                    startPlugSize: 6,
+                    endPlugSize: 6,
+                }
+            )
+            this.leaderLines.push(line);
+        }
+        document.getElementsByClassName('leader-line').forEach((elem, idx) => {
+            // restructure HTML
+            document.getElementById('leaderlines').appendChild(elem);
+            elem.id = `leader-line-${idx+1}`;
+            // add event listener
+        });
 
+        // initialize linpaced start and end points map for lines
+        this.linesXVals = {
+            0: [],
+            1: [170,480],
+            2: [170,325,480],
+            3: [170,273,377,480],
+            4: [170,248,325,403,480],
+            5: [170,240,300,360,420,480]
+        }
     }
 
     drawLeaderLines(init) {
-        const xVals = [170,240,300,360,420,480];
-
         if (init) { 
-            // initialize array of 5 leaderlines
-            this.leaderLines = [];
-            for (var i=0; i<5; ++i) {
-                const anchor1 = document.getElementById('no-pred'); // dummy elem
-                const anchor2 = document.getElementById(`answer-${i+1}`); // dummy elem
-                const line = new LeaderLine(
-                    anchor1, anchor2,
-                    {
-                        path: 'grid',
-                        color: 'black',
-                        hide: true,
-                        size: 1,
-                        startPlug: 'arrow1',
-                        startSocket: 'right', 
-                        endSocket: 'left',
-                        middleLabel: `${i+1}`,
-                        startPlugSize: 3,
-                        endPlugSize: 3,
-                    }
-                )
-                this.leaderLines.push(line);
-            }
-            document.getElementsByClassName('leader-line').forEach((elem, idx) => {
-                // restructure HTML
-                document.getElementById('leaderlines').appendChild(elem);
-                elem.id = `leader-line-${idx+1}`;
-                // add event listener
-            });
+            this.initLeaderLines();
         }
         else {
+            const xVals = this.linesXVals[this.numAnswers];
             this.leaderLines.forEach((line, idx) => {
-                if (idx < this.answers.length) { // update and show line if answer exists
+                if (idx < this.numAnswers) { // update and show line if answer exists
                     // get raw token indices
                     const startIdx = this.answersRawData.origResults[idx].start;
                     const endIdx = this.answersRawData.origResults[idx].end;
                     const startElem = document.querySelector(`#startlogits-heatmap > div > div > svg:nth-child(1) > g.cartesianlayer > g > g.yaxislayer-above > g:nth-child(${startIdx+1})`);
                     const endElem = document.querySelector(`#startlogits-heatmap > div > div > svg:nth-child(1) > g.cartesianlayer > g > g.yaxislayer-above > g:nth-child(${endIdx+1})`);
-                    // const [xLeft, xRight] = [220+(idx*20), -400+(idx*10)]
                     const startAnchor = LeaderLine.pointAnchor(
                         startElem,
                         {x: xVals[idx]},
@@ -189,6 +199,9 @@ class Demo {
                         start: document.getElementById('no-pred'),
                         end: document.getElementById(`answer-${idx+1}`),
                         hide: true,
+                        size: 0.5,
+                        startPlugSize: 5,
+                        endPlugSize: 5,
                     };
                     line.hide();
                     line.setOptions(options);
@@ -274,7 +287,12 @@ class Demo {
             const line = this.leaderLines[idx-1];
             const options = {
                 dropShadow: true,
-                dash: {len:8, animation: true},
+                dash: {len:8, gap:4, animation: true},
+                // outline: true,
+                // outlineColor: 'black',
+                size: 2,
+                startPlugSize: 2,
+                endPlugSize: 2,
             };
             line.setOptions(options);
         }
@@ -283,6 +301,9 @@ class Demo {
             const options = {
                 dropShadow: false,
                 dash: false,
+                size: 0.5,
+                startPlugSize: 5,
+                endPlugSize: 5,
             };
             line.setOptions(options);
         }
