@@ -2,6 +2,7 @@ class Demo {
     constructor() {
         this.model = "Not initialized";
         this.updateInputsFromDocument();
+        this.drawLeaderLines(true); // init leader lines
     }
 
     // save model for accessibility from methods and console
@@ -32,24 +33,38 @@ class Demo {
     // find and update answers using qna model inference 
     async answerQuestion() {
         // run qna inference with question and passage
-        this.answers = await this.model.findAnswers(this.question, 
-                                                  this.passage);
+        [this.answers, this.answersRawData] = await this.model.findAnswers(this.question, this.passage);
+    }
 
-        // format answers and display to the Answer textbox
-        let answersText = '';
+    // clear answer display before computing new answers
+    clearAnswerDisplay() { 
+        document.getElementById('no-pred').innerHTML = "";
+        for (var i=0; i<5; ++i) {
+            const answer = document.getElementById(`answer-${i+1}`);
+            answer.innerHTML = "";
+        }
+    }
+
+    // display "no predictions" or formatted answers computed by qna
+    async displayAnswers() {
+        // if no predictions
+        if (this.answers.length == 0) {
+            document.getElementById('no-pred').innerHTML = "no predictions";
+        }
+        
+        // if predictions exist: format and display answers
         this.answers.forEach((ans, idx) => {
-            const txt = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
-            answersText += `${idx}: ${txt} | score: ${ans.score.toFixed(3)}\n`;
+            const answer = document.getElementById(`answer-${idx+1}`);
+            const text = ans.text.replace(/(\r\n|\n|\r)/gm, " ");
+            const score = ans.score.toFixed(3);
+            answer.innerHTML = `${idx+1}: &emsp;${text} &emsp;|&emsp; score: ${score}\n`; // &emsp; — tab spaces
         });
-        document.getElementById('answer-textbox').value = (
-            this.answers.length > 0 ? answersText : 'no predictions'
-        );
     }
 
     // plot the logits 
     plotLogits(newPlot = false, id = 0) { //id = 0:start logits, 1:end logits
         
-        const rawData = this.model.rawData,
+        const rawData = this.model.logitsRawData,
               plotId = ['startlogits-heatmap', 'endlogits-heatmap'][id],
               plotTitle = ['Start Logits', 'End Logits'][id],
               truncateLength = rawData['tokensLength'] + 5, // display 5 [PAD] tokens
@@ -74,25 +89,28 @@ class Demo {
             xaxis: {
                 showticklabels: false,
                 ticks: "",
-                domain:[0.55, 1],
+                domain:[0.7, 0.85],
             },
             yaxis2: { // yaxis2 helps left align ticks (#1)
                 dtick: 1,
-                tickvals: d3.range(tokens.length),
-                ticktext: tokens.reverse(),
+                tickvals: d3.range(tokens.length).reverse(), 
+                ticktext: tokens, 
+                showticklabels: id==0, // only show ticks for start logits
                 tickfont : {size: 16},
                 anchor: "free",
                 side: "right",
                 automargin: true,
                 ticks: "",
             },
+            plot_bgcolor:"black",  // remove white- 
+            paper_bgcolor:"#FFF3", // -spaces hiding leaderlines
             coloraxis: {
                 cmin: -20, 
                 cmax: 10, 
                 showscale: false
             },
             height: 20 * tokens.length,
-            width: 380,
+            width: 350,
             // TODO: scale width more for cases with very long tokens
             // const longest_tok_width = tokens.reduce(
             //     function (a, b) {return a.length > b.length ? a : b;}).length;
@@ -105,12 +123,169 @@ class Demo {
         }
     }
 
+    initLeaderLines() {
+
+    }
+
+    drawLeaderLines(init) {
+        const xVals = [170,240,300,360,420,480];
+
+        if (init) { 
+            // initialize array of 5 leaderlines
+            this.leaderLines = [];
+            for (var i=0; i<5; ++i) {
+                const anchor1 = document.getElementById('no-pred'); // dummy elem
+                const anchor2 = document.getElementById(`answer-${i+1}`); // dummy elem
+                const line = new LeaderLine(
+                    anchor1, anchor2,
+                    {
+                        path: 'grid',
+                        color: 'black',
+                        hide: true,
+                        size: 1,
+                        startPlug: 'arrow1',
+                        startSocket: 'right', 
+                        endSocket: 'left',
+                        middleLabel: `${i+1}`,
+                        startPlugSize: 3,
+                        endPlugSize: 3,
+                    }
+                )
+                this.leaderLines.push(line);
+            }
+            document.getElementsByClassName('leader-line').forEach((elem, idx) => {
+                // restructure HTML
+                document.getElementById('leaderlines').appendChild(elem);
+                elem.id = `leader-line-${idx+1}`;
+                // add event listener
+            });
+        }
+        else {
+            this.leaderLines.forEach((line, idx) => {
+                if (idx < this.answers.length) { // update and show line if answer exists
+                    // get raw token indices
+                    const startIdx = this.answersRawData.origResults[idx].start;
+                    const endIdx = this.answersRawData.origResults[idx].end;
+                    const startElem = document.querySelector(`#startlogits-heatmap > div > div > svg:nth-child(1) > g.cartesianlayer > g > g.yaxislayer-above > g:nth-child(${startIdx+1})`);
+                    const endElem = document.querySelector(`#startlogits-heatmap > div > div > svg:nth-child(1) > g.cartesianlayer > g > g.yaxislayer-above > g:nth-child(${endIdx+1})`);
+                    // const [xLeft, xRight] = [220+(idx*20), -400+(idx*10)]
+                    const startAnchor = LeaderLine.pointAnchor(
+                        startElem,
+                        {x: xVals[idx]},
+                    );
+                    const endAnchor = LeaderLine.pointAnchor(
+                        endElem,
+                        {x: xVals[idx+1]},
+                    );
+                    const options = {
+                        start: startAnchor,
+                        end: endAnchor,
+                    };
+                    line.setOptions(options);
+                    line.show();
+                }
+                else {
+                    const options = {
+                        start: document.getElementById('no-pred'),
+                        end: document.getElementById(`answer-${idx+1}`),
+                        hide: true,
+                    };
+                    line.hide();
+                    line.setOptions(options);
+                }
+            });
+        }
+    }
+
+    plotAttention(newPlot = false, 
+                  layerName = 'bert/encoder/layer_0/attention/self/Softmax') {
+        const rawData = this.model.logitsRawData,
+              truncateLengthX = 384,
+              truncateLengthY = 65, // TODO: map to rawData['tokensLength']
+              logits = rawData['logits'],
+              layerData = rawData['intermLayers'][layerName];
+              
+        // shape of layerData: num_heads * 384 * 384
+        // shape desired: num_heads * seq_len * seq_len
+        const temp = layerName.split('/');
+        const plotTitle = temp[temp.length - 1];
+
+        const att_head_0_data = layerData[0][0];
+        const z = att_head_0_data // .slice(truncateLengthX-65, truncateLengthX).map(i => i.slice(0, truncateLengthY));
+
+        const data = [
+            {
+                title: plotTitle,
+                z: z,
+                type: "heatmap",
+                coloraxis: 'coloraxis',
+            }
+        ];
+        const layout = {
+            height: 500,
+            width: 500,
+            xaxis: {side: "top"},
+            yaxis: {autorange: 'reversed'},
+        };
+        // create element if absent
+        Plotly.react(`${plotTitle}-heatmap`, data, layout);
+    }
+
+
     // answer the question and plot logits
     async respondToTextSubmit() {
-        this.updateInputsFromDocument(); // update inputs before running qna
+
+        // clear old answers from display
+        this.clearAnswerDisplay();
+
+        // update question and passage ie. inputs before running qna
+        this.updateInputsFromDocument(); 
+
+        // run qna on inputs
         await this.answerQuestion();
+
+        // plot start logits
         this.plotLogits(false, 0);
+
+        // plot end logits
         this.plotLogits(false, 1);
+
+        // plot intermediate layers
+        // this.plotAttention(false, 'bert/encoder/layer_0/attention/self/Softmax');
+        // this.plotAttention(false, 'bert/encoder/layer_0/attention/self/MatMul');
+        // this.plotAttention(false, 'bert/encoder/layer_0/attention/self/MatMul_1');
+
+        // display computed answers in the Answer HTML field
+        await this.displayAnswers();
+
+        // draw leader lines between answer tokens on heatmap
+        this.drawLeaderLines();
+    }
+
+    // TODO: replace HTML code by 
+    // makeAnswersHoverable() {
+    //     for (var idx=1; idx<6; ++idx) {
+    //         document.getElementById(`answer-${idx}`).addEventListener('onmouseover', this.respondToHover(idx, 'enter')).addEventListener('onmouseout', this.respondToHover(idx, 'exit'));
+    //     }
+    // }
+
+    respondToHover(idx, hover='exit') {
+        if (hover==='enter') {
+            const line = this.leaderLines[idx-1];
+            const options = {
+                dropShadow: true,
+                dash: {len:8, animation: true},
+            };
+            line.setOptions(options);
+        }
+        else {
+            const line = this.leaderLines[idx-1];
+            const options = {
+                dropShadow: false,
+                dash: false,
+            };
+            line.setOptions(options);
+        }
     }
     
     async main() {

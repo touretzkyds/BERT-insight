@@ -13,15 +13,19 @@
     <!-- Load the qna model. -->
     <script src="modules/qna.js"> </script>
     <!-- Place your code in the script tag below. You can also use an external .js file -->
+    <script src="modules/leader_line.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
     <script src=https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.3.0/math.min.js></script>
 </head>
 <body>
+    <div id="header">
+        <h1>BERT Question Answering Demo</h1>
+    </div>
     <div id="loading-icon">
         Loading model ... 
         <img src="https://i.stack.imgur.com/kOnzy.gif" alt="loading-icon.gif"/>
     </div>
-    <div id = "texts-plots-container">
+    <div id = "main-container">
         <div id = "inputs"> 
             <form action="javascript:demo.respondToTextSubmit()" autocomplete="off">
                 
@@ -40,14 +44,49 @@ What instrument did John play?
                 </textarea><br>
                 <input type="submit" value="Submit"> <br>
             </form> 
-            <div id="output-text">
-                <label>Answer:</label><br>
-                <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea>
+            <div id="answers-container">
+                <label>Answer:</label>
+                <!-- <textarea id="answer-textbox" rows=8 cols=80 wrap=on readonly></textarea> -->
+                <div id="all-answers">
+                    <div id="no-pred"></div>
+                    <div id="answer-1" 
+                        onmouseover="demo.respondToHover(1, 'enter')"
+                        onmouseout="demo.respondToHover(1, 'exit')">
+                    </div>
+                    <div id="answer-2" 
+                        onmouseover="demo.respondToHover(2, 'enter')"
+                        onmouseout="demo.respondToHover(2, 'exit')">
+                    </div>
+                    <div id="answer-3" 
+                        onmouseover="demo.respondToHover(3, 'enter')"
+                        onmouseout="demo.respondToHover(3, 'exit')">
+                    </div>
+                    <div id="answer-4" 
+                        onmouseover="demo.respondToHover(4, 'enter')"
+                        onmouseout="demo.respondToHover(4, 'exit')">
+                    </div>
+                    <div id="answer-5" 
+                        onmouseover="demo.respondToHover(5, 'enter')"
+                        onmouseout="demo.respondToHover(5, 'exit')">
+                    </div>
+                    <div id="answer-2"></div>
+                    <div id="answer-3"></div>
+                    <div id="answer-4"></div>
+                    <div id="answer-5"></div>
+                </div>
+            </div>
+            <div id = "attention-visuals">
+                <div id = "MatMul-heatmap"></div>
+                <div id = "Softmax-heatmap"></div>
+                <div id = "MatMul_1-heatmap"></div>
+                <div id = "add-heatmap"></div>
+                <div id = "mul-heatmap"></div>
             </div>
         </div>
-        
+            
         <div id = "output-visuals">
             <div id = "startlogits-heatmap"></div>
+            <div id = "leaderlines"></div>
             <div id = "endlogits-heatmap"></div>
         </div>
     </div>

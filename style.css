@@ -4,10 +4,42 @@
     height: 100px;
 }
 
-#texts-plots-container {
+#main-container {
     display: flex;
 }
 
 #output-visuals {
     display: flex;
+}
+
+#attention-visuals {
+    display: flex;
+    flex-direction: column;
+}
+
+#answers-container {
+    margin-top: 10px;
+}
+
+#all-answers {
+    border: 1px solid gray;
+    height: 120px;
+    padding: 10px 0px 10px 0px;
+    font-family: monospace;
+    border-radius: 5px;
+    /* z-index: ; */
+}
+
+#startlogits-heatmap > div > div > svg:nth-child(1) > g.cartesianlayer > g > g.yaxislayer-above > g {
+    border: 1px solid gray;
+}
+/* 
+#leaderlines {
+    border: 1px solid gray;
+    width: 200px;
+} */
+
+.leader-line {
+    z-index: -1; /* to avoid obscuring heatmap hovertext */
+    width: 100px;
 }

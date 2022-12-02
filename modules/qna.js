@@ -444,7 +444,22 @@
             return features;
         };
         QuestionAndAnswerImpl.prototype.load = function () {
-            this.rawData = {}; // init data structure to cache intermediate data for bertdemo 
+            this.logitsRawData = {}; // init data structure to cache intermediate data for bertdemo 
+            this.intermLayerNames = ['bert/encoder/layer_0/attention/self/MatMul',
+                                     'bert/encoder/layer_0/attention/self/Softmax',
+                                     'bert/encoder/layer_0/attention/self/MatMul_1',
+                                     'bert/encoder/layer_0/attention/self/add',
+
+                                     'bert/encoder/layer_1/attention/output/strided_slice',
+                                     'bert/encoder/layer_1/attention/output/Shape',
+                                     'bert/encoder/layer_23/intermediate/strided_slice_1/stack',
+                                     'bert/encoder/layer_23/intermediate/strided_slice_1/stack_1',
+                                    ]; // intermediate layer names for bertdemo
+            this.logitsRawData['intermLayers'] = {}
+            this.intermLayerNames.forEach((layerName) => {
+                // init data structure to hold intermediate layer data
+                return this.logitsRawData['intermLayers'][layerName] = null;
+            }); 
             return __awaiter(this, void 0, void 0, function () {
                 var _a, batchSize, inputIds, segmentIds, inputMask, _b;
                 return __generator(this, function (_c) {
@@ -498,8 +513,11 @@
                             globalStep = tf.scalar(1, 'int32');
                             batchSize = features.length;
                             // save to raw data for bertdemo 
-                            this.rawData['allTokenIds'] = inputIdArray;
-                            this.rawData['tokensLength'] = tokensLength[0];
+                            this.logitsRawData['allTokenIds'] = inputIdArray;
+                            this.logitsRawData['tokensLength'] = tokensLength[0];
+                            var desiredOutputs = ['start_logits', 'end_logits'];
+                            desiredOutputs.push.apply(desiredOutputs, _this.intermLayerNames);
+
                             result = tf.tidy(function () {
                                 var inputIds = tf.tensor2d(inputIdArray, [batchSize, INPUT_SIZE], 'int32');
                                 var segmentIds = tf.tensor2d(segmentIdArray, [batchSize, INPUT_SIZE], 'int32');
@@ -509,15 +527,20 @@
                                     segment_ids: segmentIds,
                                     input_mask: inputMask,
                                     global_step: globalStep
-                                }, ['start_logits', 'end_logits',
-				    'bert/encoder/layer_0/bottleneck/input/dense/bias',
-				    'bert/encoder/layer_0/attention/self/MatMul']);
+                                }, desiredOutputs);
                             });
-                        return [4 /*yield*/, Promise.all([result[0].array(), result[1].array(), result[2].array(), result[3].array()])];
+                        const outputArray = Promise.all(desiredOutputs.map((_, idx) => result[idx].array()));
+                        return [4 /*yield*/, outputArray];
                         case 1:
                             logits = _a.sent();
-                            // save to raw data for bertdemo 
-                            this.rawData['logits'] = logits;
+                            // save to raw data for bertdemo: 
+                            // start and end logits
+                            this.logitsRawData['logits'] = logits.slice(0,2);
+                            // save intermediate layers
+                            this.intermLayerNames.forEach((layerName, idx) => 
+                                this.logitsRawData['intermLayers'][layerName] = logits[idx+2]); 
+                                // 2 for prior start, end logits
+
                             // dispose all intermediate tensors
                             globalStep.dispose();
                             result[0].dispose();
@@ -558,6 +581,7 @@
             });
             origResults.sort(function (a, b) { return b.score - a.score; });
             var answers = [];
+            var answersRawData = [];
             for (var i = 0; i < origResults.length; i++) {
                 if (i >= PREDICT_ANSWER_NUM ||
                     origResults[i].score < NO_ANSWER_THRESHOLD) {
@@ -577,10 +601,13 @@
                     score: origResults[i].score,
                     startIndex: startIndex,
                     endIndex: endIndex,
-                    origTokens: origTokens,
                 });
             }
-            return answers;
+            answersRawData = {
+                origTokens: origTokens,
+                origResults: origResults,
+            };
+            return [answers, answersRawData];
         };
         /** Get the n-best logits from a list of all the logits. */
         QuestionAndAnswerImpl.prototype.getBestIndex = function (logits) {
