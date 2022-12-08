@@ -445,16 +445,13 @@
         };
         QuestionAndAnswerImpl.prototype.load = function () {
             this.logitsRawData = {}; // init data structure to cache intermediate data for bertdemo 
-            this.intermLayerNames = ['bert/encoder/layer_0/attention/self/MatMul',
-                                     'bert/encoder/layer_0/attention/self/Softmax',
-                                     'bert/encoder/layer_0/attention/self/MatMul_1',
-                                     'bert/encoder/layer_0/attention/self/add',
-
-                                     'bert/encoder/layer_1/attention/output/strided_slice',
-                                     'bert/encoder/layer_1/attention/output/Shape',
-                                     'bert/encoder/layer_23/intermediate/strided_slice_1/stack',
-                                     'bert/encoder/layer_23/intermediate/strided_slice_1/stack_1',
-                                    ]; // intermediate layer names for bertdemo
+            this.intermLayerNames = [];
+            
+            // add all intermediate layers for attention data required for bertdemo
+            for (var i=0; i<24; ++i) {
+                this.intermLayerNames.push(`bert/encoder/layer_${i}/attention/self/Softmax`);
+            }
+            
             this.logitsRawData['intermLayers'] = {}
             this.intermLayerNames.forEach((layerName) => {
                 // init data structure to hold intermediate layer data

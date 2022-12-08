@@ -43,3 +43,11 @@
     z-index: -1; /* to avoid obscuring heatmap hovertext */
     width: 100px;
 }
+
+#attention-heatmaps {
+    display: none;
+}
+
+#attention-visuals {
+    display: none;
+}

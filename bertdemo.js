@@ -71,13 +71,13 @@ class Demo {
               plotTitle = ['Start Logits', 'End Logits'][id],
               truncateLength = rawData['tokensLength'] + 5, // display 5 [PAD] tokens
               logits = rawData['logits'][id][0] // access start or end logits
-                            .slice(0, truncateLength),
-              tokens = this.getTokensFromTokenIds(
-                                rawData['allTokenIds'][0]
-                            ).slice(0, truncateLength);
-
+                            .slice(0, truncateLength);
+        
         const z = logits.reverse().map(x => [x]); // expected format is Array(Array)
-                
+
+        this.tokens = this.getTokensFromTokenIds(rawData['allTokenIds'][0]
+        ).slice(0, truncateLength);
+
         const data = [
             {
                 z: z,
@@ -94,9 +94,9 @@ class Demo {
                 domain:[0.7, 0.85],
             },
             yaxis2: { // yaxis2 helps left align ticks (#1)
-                dtick: 1,
-                tickvals: d3.range(tokens.length).reverse(), 
-                ticktext: tokens, 
+                // dtick: 1,
+                tickvals: d3.range(this.tokens.length).reverse(), 
+                ticktext: this.tokens, 
                 showticklabels: id==0, // only show ticks for start logits
                 tickfont : {size: 16},
                 anchor: "free",
@@ -111,7 +111,7 @@ class Demo {
                 cmax: 10, 
                 showscale: false
             },
-            height: 20 * tokens.length,
+            height: 20 * this.tokens.length,
             width: 350,
             // TODO: scale width more for cases with very long tokens
             // const longest_tok_width = tokens.reduce(
@@ -125,6 +125,7 @@ class Demo {
         }
     }
 
+    // initialize array of leader lines
     initLeaderLines() {
         // initialize array of 5 leaderlines
         this.leaderLines = [];
@@ -166,6 +167,7 @@ class Demo {
         }
     }
 
+    // update leader lines to plot between start and end logits
     drawLeaderLines(init) {
         if (init) { 
             this.initLeaderLines();
@@ -210,42 +212,73 @@ class Demo {
         }
     }
 
-    plotAttention(newPlot = false, 
-                  layerName = 'bert/encoder/layer_0/attention/self/Softmax') {
-        const rawData = this.model.logitsRawData,
-              truncateLengthX = 384,
-              truncateLengthY = 65, // TODO: map to rawData['tokensLength']
-              logits = rawData['logits'],
-              layerData = rawData['intermLayers'][layerName];
-              
-        // shape of layerData: num_heads * 384 * 384
-        // shape desired: num_heads * seq_len * seq_len
-        const temp = layerName.split('/');
-        const plotTitle = temp[temp.length - 1];
+    // check selection in attention dropdown and plot corresponding attention plot
+    plotFromDropdown() {
+        const dropDown = document.getElementById('attn-dropdown');
+        
+        // if no selections made, plot nothing
+        if (dropDown.selectedIndex === 0) {
+            document.getElementById('attention-heatmaps').style.display = "none";
+            return;
+        }
+        
+        // activate attention dropdown and plot attention if dropdown selected
+        document.getElementById('attention-heatmaps').style.display = "block";
+        const layerId = dropDown.options[dropDown.selectedIndex].text;
+        const layerName = `bert/encoder/layer_${layerId}/attention/self/Softmax`;
+        const rawData = this.model.logitsRawData;
+        const layerData = rawData['intermLayers'][layerName];
+        const truncateLength = rawData['tokensLength'] + 5;
+        
+        for (var headId=0; headId<4; ++headId) {
+            const headData = layerData[0][headId].slice(0, truncateLength).map(i => i.slice(0, truncateLength));
+            this.plotAttention(headData, headId, layerName);
+        }
+        const diagonalData = [[],[],[],[]];
+        for (var h=0; h<4; ++h){
+            const headData = layerData[0][h];
+            for (var d=0; d<truncateLength; ++d){
+                diagonalData[h].push(headData[d][d]);
+            }
+        }
+        return layerData; // for debugging
+    } 
 
-        const att_head_0_data = layerData[0][0];
-        const z = att_head_0_data // .slice(truncateLengthX-65, truncateLengthX).map(i => i.slice(0, truncateLengthY));
-
+    // plot heatmap with attention matrix
+    plotAttention(headData, headId, layerName) {
         const data = [
             {
-                title: plotTitle,
-                z: z,
+                z: headData,
                 type: "heatmap",
                 coloraxis: 'coloraxis',
             }
         ];
         const layout = {
-            height: 500,
-            width: 500,
-            xaxis: {side: "top"},
-            yaxis: {autorange: 'reversed'},
+            title: {
+                text:'layer: '+layerName+': head '+headId,
+                y: "0.07",
+            },
+            xaxis: {
+                side: "top",
+                tickvals: d3.range(this.tokens.length), 
+                ticktext: this.tokens, 
+            },
+            yaxis: {
+                autorange: 'reversed',
+                tickvals: d3.range(this.tokens.length), 
+                ticktext: this.tokens, 
+                showticklabels: true,
+                tickfont : {size: 10},
+            },
+            width: 650,
+            height: 650,
         };
         // create element if absent
-        Plotly.react(`${plotTitle}-heatmap`, data, layout);
+        Plotly.react(`attn-heatmap-head-${headId}`, data, layout);
     }
 
 
-    // answer the question and plot logits
+    // respond to question answering submit button press
     async respondToTextSubmit() {
 
         // clear old answers from display
@@ -263,16 +296,16 @@ class Demo {
         // plot end logits
         this.plotLogits(false, 1);
 
-        // plot intermediate layers
-        // this.plotAttention(false, 'bert/encoder/layer_0/attention/self/Softmax');
-        // this.plotAttention(false, 'bert/encoder/layer_0/attention/self/MatMul');
-        // this.plotAttention(false, 'bert/encoder/layer_0/attention/self/MatMul_1');
-
         // display computed answers in the Answer HTML field
         await this.displayAnswers();
 
         // draw leader lines between answer tokens on heatmap
         this.drawLeaderLines();
+
+        // show dropdown on first submit button press and 
+        // plot attention if a dropdown option is selected on submit
+        document.getElementById('attention-visuals').style.display = "block";
+        this.plotFromDropdown();
     }
 
     // TODO: replace HTML code by 
@@ -282,14 +315,13 @@ class Demo {
     //     }
     // }
 
+    // highlight arrows on hover in and un-highlight on hover out
     respondToHover(idx, hover='exit') {
         if (hover==='enter') {
             const line = this.leaderLines[idx-1];
             const options = {
                 dropShadow: true,
                 dash: {len:8, gap:4, animation: true},
-                // outline: true,
-                // outlineColor: 'black',
                 size: 2,
                 startPlugSize: 2,
                 endPlugSize: 2,
