@@ -277,6 +277,58 @@ class Demo {
         Plotly.react(`attn-heatmap-head-${headId}`, data, layout);
     }
 
+    plotEmbeddings(newPlot=false, wordIdx=0, layerIdx=0, plotNum=0) { 
+        
+        // get embedding vector
+        const embedding = [this.model.logitsRawData.intermLayers[
+            `bert/encoder/layer_${layerIdx}/attention/self/key/add`
+        ][wordIdx]], // expected format is Array(Array)
+            plotTitle = `${this.tokens[wordIdx]}: layer ${layerIdx}`,
+            plotId = `embedding-heatmap-${plotNum}`;
+
+        const z = embedding[0].map((_, colIndex) => embedding.map(row => row[colIndex]));
+        const data = [
+            {
+                z: z,
+                type: "heatmap",
+                coloraxis: 'coloraxis',
+            }
+        ];
+        const layout = {
+            title: {text: plotTitle},
+            xaxis: {
+                showticklabels: false,
+                ticks: "",
+            },
+            yaxis: {
+                ticks: "",
+                autorange: 'reversed',
+            },
+            coloraxis: {
+                showscale: false
+            },
+            width: 200,
+        };
+        if (newPlot) {
+            Plotly.newPlot(`${plotId}`, data, layout);
+        } else {
+            Plotly.react(`${plotId}`, data, layout);
+        }
+    }
+
+    // TODO: allow selection of ticks and plot embeddings
+    // makeTicksClickable() {
+    //     for (var c=1; c<=this.truncateLength; ++c){
+    //         document.querySelector(`#startlogits-heatmap > div > div > \
+    //         svg:nth-child(1) > g.cartesianlayer > g > g.yaxislayer-above > g:nth-child(${c})`)
+    //         .addEventListener('mouseover', () => {
+    //             this.embPlotActiveIdx = 1 - this.embPlotActiveIdx;
+    //             this.embPlotIds[this.embPlotActiveIdx] = c-1;
+    //             this.plotEmbeddings(false, c-1, this.embPlotActiveIdx);
+    //         });
+    //     }
+    // }
+
 
     // respond to question answering submit button press
     async respondToTextSubmit() {
@@ -295,6 +347,15 @@ class Demo {
 
         // plot end logits
         this.plotLogits(false, 1);
+
+        // this.embPlotActiveIdx = 1;
+        // this.makeTicksClickable();
+
+        // plot embeddings with args newplot, token_idx, layer_idx, plot_num
+        this.plotEmbeddings(false, 4, 0, 0);
+        this.plotEmbeddings(false, 8, 0, 1);
+        this.plotEmbeddings(false, 4, 23, 2);
+        this.plotEmbeddings(false, 8, 23, 3);
 
         // display computed answers in the Answer HTML field
         await this.displayAnswers();

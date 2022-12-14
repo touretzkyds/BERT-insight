@@ -449,7 +449,10 @@
             
             // add all intermediate layers for attention data required for bertdemo
             for (var i=0; i<24; ++i) {
+                this.intermLayerNames.push(`bert/encoder/layer_${i}/attention/self/key/add`);
                 this.intermLayerNames.push(`bert/encoder/layer_${i}/attention/self/Softmax`);
+                this.intermLayerNames.push(`bert/encoder/layer_${i}/attention/self/transpose`);
+                this.intermLayerNames.push(`bert/encoder/layer_${i}/attention/self/transpose_1`);
             }
             
             this.logitsRawData['intermLayers'] = {}
