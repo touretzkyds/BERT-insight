@@ -283,9 +283,9 @@ class Demo {
     // plot heatmap with attention matrix
     plotAttention(headData, headId, layerName) {
         const text = headData.map((row, i) => row.map((item, j) => { 
-            return `input: ${this.tokens[this.tokens.length - i - 1]}`+
-            `<br>output: ${this.tokens[this.tokens.length - j - 1]}` +
-            `<br>attention score: ${item.toFixed(5)}`
+            return `input: ${this.tokens[i]}`+
+            `<br>output: ${this.tokens[j]}` +
+            `<br>attention: ${item.toFixed(5)}`
             }));
             
         const data = [
