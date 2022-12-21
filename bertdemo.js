@@ -67,23 +67,33 @@ class Demo {
     plotLogits(newPlot = false, id = 0) { //id = 0:start logits, 1:end logits
         
         const rawData = this.model.logitsRawData,
-              plotId = ['startlogits-heatmap', 'endlogits-heatmap'][id],
+              plotElemId = ['startlogits-heatmap', 'endlogits-heatmap'][id],
               plotTitle = ['Start Logits', 'End Logits'][id],
               truncateLength = rawData['tokensLength'] + 5, // display 5 [PAD] tokens
               logits = rawData['logits'][id][0] // access start or end logits
-                            .slice(0, truncateLength);
+                            .slice(0, truncateLength).reverse();
         
-        const z = logits.reverse().map(x => [x]); // expected format is Array(Array)
+        const z = logits.map(x => [x]); // expected format is Array(Array)
 
         this.tokens = this.getTokensFromTokenIds(rawData['allTokenIds'][0]
         ).slice(0, truncateLength);
+        this.selectedTokenIds = [8,27];
+
+        const text = z.map((row, i) => row.map((item, _) => { 
+            return `id: ${this.tokens.length - i - 1}`+
+            `<br>token: ${this.tokens[this.tokens.length - i - 1]}` +
+            `<br>logit: ${item.toFixed(5)}`
+            }));
 
         const data = [
             {
+                x: "",
                 z: z,
                 yaxis: "y2",
                 type: "heatmap",
                 coloraxis: 'coloraxis',
+                text: text,
+                hoverinfo: "text",
             }
         ];
         const layout = {
@@ -94,7 +104,6 @@ class Demo {
                 domain:[0.7, 0.85],
             },
             yaxis2: { // yaxis2 helps left align ticks (#1)
-                // dtick: 1,
                 tickvals: d3.range(this.tokens.length).reverse(), 
                 ticktext: this.tokens, 
                 showticklabels: id==0, // only show ticks for start logits
@@ -114,14 +123,34 @@ class Demo {
             height: 20 * this.tokens.length,
             width: 350,
             // TODO: scale width more for cases with very long tokens
-            // const longest_tok_width = tokens.reduce(
-            //     function (a, b) {return a.length > b.length ? a : b;}).length;
+            // const longest_tok_width = tokens.reduce(function (a, b) {return a.length > b.length ? a : b;}).length;
 
         };
         if (newPlot) {
-            Plotly.newPlot(`${plotId}`, data, layout);
+            Plotly.newPlot(`${plotElemId}`, data, layout);
         } else {
-            Plotly.react(`${plotId}`, data, layout);
+            Plotly.react(`${plotElemId}`, data, layout);
+        }
+        // bind click event
+        let plotlyLogits = document.getElementById(plotElemId);
+        plotlyLogits.on("plotly_click", (data) => {
+            this.reactToLogitsClick(data, id);
+        });
+    }
+
+    // update embedding plots when tokens in logits heatmaps are clicked
+    // start logits: plots 0,2 and end logits: plots 1,3
+    reactToLogitsClick(clickData, logPlotId) {
+        // save clicked token id depending on which plot it is clicked in
+        this.selectedTokenIds[logPlotId] = 
+        this.tokens.length - clickData.points[0].pointNumber[0] - 1; // token order reversed in plotly
+        if (logPlotId == 0) {
+            this.updateEmbPlot(0, this.selectedTokenIds[0]);
+            this.updateEmbPlot(2, this.selectedTokenIds[0]);
+        }
+        else {
+            this.updateEmbPlot(1, this.selectedTokenIds[1]);
+            this.updateEmbPlot(3, this.selectedTokenIds[1]);
         }
     }
 
@@ -167,7 +196,7 @@ class Demo {
         }
     }
 
-    // update leader lines to plot between start and end logits
+    // draw or update leader lines to plot between start and end logits
     drawLeaderLines(init) {
         if (init) { 
             this.initLeaderLines();
@@ -212,12 +241,19 @@ class Demo {
         }
     }
 
+    // show hidden elements ie dropdowns on event call after submit
+    makeElemsVisible(){
+        const elems = document.getElementsByClassName('hidden').forEach(elem => {
+            elem.style.visibility = 'visible';
+        });
+    }
+
     // check selection in attention dropdown and plot corresponding attention plot
     plotFromDropdown() {
         const dropDown = document.getElementById('attn-dropdown');
         
         // if no selections made, plot nothing
-        if (dropDown.selectedIndex === 0) {
+        if (dropDown.value === "---Choose layer---") {
             document.getElementById('attention-heatmaps').style.display = "none";
             return;
         }
@@ -234,23 +270,31 @@ class Demo {
             const headData = layerData[0][headId].slice(0, truncateLength).map(i => i.slice(0, truncateLength));
             this.plotAttention(headData, headId, layerName);
         }
-        const diagonalData = [[],[],[],[]];
-        for (var h=0; h<4; ++h){
-            const headData = layerData[0][h];
-            for (var d=0; d<truncateLength; ++d){
-                diagonalData[h].push(headData[d][d]);
-            }
-        }
+        // const diagonalData = [[],[],[],[]];
+        // for (var h=0; h<4; ++h){
+        //     const headData = layerData[0][h];
+        //     // for (var d=0; d<truncateLength; ++d){
+        //     //     diagonalData[h].push(headData[d][d]);
+        //     // }
+        // }
         return layerData; // for debugging
     } 
 
     // plot heatmap with attention matrix
     plotAttention(headData, headId, layerName) {
+        const text = headData.map((row, i) => row.map((item, j) => { 
+            return `input: ${this.tokens[this.tokens.length - i - 1]}`+
+            `<br>output: ${this.tokens[this.tokens.length - j - 1]}` +
+            `<br>attention score: ${item.toFixed(5)}`
+            }));
+            
         const data = [
             {
                 z: headData,
                 type: "heatmap",
                 coloraxis: 'coloraxis',
+                text: text,
+                hoverinfo: "text",
             }
         ];
         const layout = {
@@ -259,11 +303,13 @@ class Demo {
                 y: "0.07",
             },
             xaxis: {
+                title: "output attention tokens",
                 side: "top",
                 tickvals: d3.range(this.tokens.length), 
                 ticktext: this.tokens, 
             },
             yaxis: {
+                title: "input attention tokens",
                 autorange: 'reversed',
                 tickvals: d3.range(this.tokens.length), 
                 ticktext: this.tokens, 
@@ -283,7 +329,7 @@ class Demo {
         const embedding = [this.model.logitsRawData.intermLayers[
             `bert/encoder/layer_${layerIdx}/attention/self/key/add`
         ][wordIdx]], // expected format is Array(Array)
-            plotTitle = `${this.tokens[wordIdx]}: layer ${layerIdx}`,
+            plotTitle = `${wordIdx}: ${this.tokens[wordIdx]}`,
             plotId = `embedding-heatmap-${plotNum}`;
 
         const z = embedding[0].map((_, colIndex) => embedding.map(row => row[colIndex]));
@@ -307,6 +353,7 @@ class Demo {
             coloraxis: {
                 showscale: false
             },
+            height: 20 * this.tokens.length,
             width: 200,
         };
         if (newPlot) {
@@ -316,19 +363,17 @@ class Demo {
         }
     }
 
-    // TODO: allow selection of ticks and plot embeddings
-    // makeTicksClickable() {
-    //     for (var c=1; c<=this.truncateLength; ++c){
-    //         document.querySelector(`#startlogits-heatmap > div > div > \
-    //         svg:nth-child(1) > g.cartesianlayer > g > g.yaxislayer-above > g:nth-child(${c})`)
-    //         .addEventListener('mouseover', () => {
-    //             this.embPlotActiveIdx = 1 - this.embPlotActiveIdx;
-    //             this.embPlotIds[this.embPlotActiveIdx] = c-1;
-    //             this.plotEmbeddings(false, c-1, this.embPlotActiveIdx);
-    //         });
-    //     }
-    // }
-
+    // refresh embedding plots based on dropdown and selected token
+    updateEmbPlot(plotId, tokenId){
+        // get layer id from dropdown
+        const dropdown = document.getElementById(`embedding-dropdown-${plotId}`);
+        const layerId = dropdown.value;
+        // if no selections made, plot nothing
+        if (layerId === "---Choose layer---") {
+            return;
+        }
+        this.plotEmbeddings(false, tokenId, layerId, plotId);
+    }
 
     // respond to question answering submit button press
     async respondToTextSubmit() {
@@ -352,11 +397,11 @@ class Demo {
         // this.makeTicksClickable();
 
         // plot embeddings with args newplot, token_idx, layer_idx, plot_num
-        this.plotEmbeddings(false, 4, 0, 0);
-        this.plotEmbeddings(false, 8, 0, 1);
-        this.plotEmbeddings(false, 4, 23, 2);
-        this.plotEmbeddings(false, 8, 23, 3);
-
+        this.updateEmbPlot(0, this.selectedTokenIds[0]);
+        this.updateEmbPlot(1, this.selectedTokenIds[1]);
+        this.updateEmbPlot(2, this.selectedTokenIds[0]);
+        this.updateEmbPlot(3, this.selectedTokenIds[1]);
+        
         // display computed answers in the Answer HTML field
         await this.displayAnswers();
 
@@ -365,7 +410,7 @@ class Demo {
 
         // show dropdown on first submit button press and 
         // plot attention if a dropdown option is selected on submit
-        document.getElementById('attention-visuals').style.display = "block";
+        this.makeElemsVisible();
         this.plotFromDropdown();
     }
 

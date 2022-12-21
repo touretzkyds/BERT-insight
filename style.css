@@ -8,12 +8,12 @@
     display: flex;
 }
 
-#output-visuals {
+#logits-container, #embeddings-container {
     display: flex;
+    flex-direction: row;
 }
 
-#attention-visuals {
-    display: flex;
+#attention-container {
     flex-direction: column;
 }
 
@@ -27,27 +27,25 @@
     padding: 10px 0px 10px 0px;
     font-family: monospace;
     border-radius: 5px;
-    /* z-index: ; */
 }
-
-#startlogits-heatmap > div > div > svg:nth-child(1) > g.cartesianlayer > g > g.yaxislayer-above > g {
-    border: 1px solid gray;
-}
-/* 
-#leaderlines {
-    border: 1px solid gray;
-    width: 200px;
-} */
 
 .leader-line {
     z-index: -1; /* to avoid obscuring heatmap hovertext */
     width: 100px;
 }
 
-#attention-heatmaps {
-    display: none;
+#embedding-0-container, #embedding-1-container, 
+#embedding-2-container, #embedding-3-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
-#attention-visuals {
-    display: none;
+.hidden {
+    visibility: hidden;
+}
+
+/* style dropdowns */
+select {
+    text-align: center;
 }

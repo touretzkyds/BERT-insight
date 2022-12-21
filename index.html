@@ -26,7 +26,7 @@
         <img src="https://i.stack.imgur.com/kOnzy.gif" alt="loading-icon.gif"/>
     </div>
     <div id = "main-container">
-        <div id = "inputs"> 
+        <div id = "vertical-components"> 
             <form action="javascript:demo.respondToTextSubmit()" autocomplete="off">
                 
                 <label for="passage">Enter passage:</label><br>
@@ -75,10 +75,10 @@ What instrument did John play?
                     <div id="answer-5"></div>
                 </div>
             </div>
-            <div id = "attention-visuals">Attention visuals
+            <div id = "attention-container" class="hidden">Attention visuals
                 <select id = "attn-dropdown" onchange = "demo.plotFromDropdown()" >  
                     <option> ---Choose layer--- </option>  
-                    <option> 0 </option>  
+                    <option selected> 0 </option>  
                     <option> 1 </option>  
                     <option> 2 </option>  
                     <option> 3 </option>  
@@ -112,14 +112,132 @@ What instrument did John play?
             </div>
         </div>
         
-        <div id = "output-visuals">
+        <div id = "logits-container">
             <div id = "startlogits-heatmap"></div>
             <div id = "leaderlines"></div>
             <div id = "endlogits-heatmap"></div>
-            <div id = "embedding-heatmap-0"></div>
-            <div id = "embedding-heatmap-1"></div>
-            <div id = "embedding-heatmap-2"></div>
-            <div id = "embedding-heatmap-3"></div>
+        </div>
+        <div id="embeddings-container" class="hidden"> 
+            <div id="embedding-0-container">
+                <select id="embedding-dropdown-0" onchange = "demo.updateEmbPlot(0)">  
+                    <option> ---Choose layer--- </option>  
+                    <option selected> 0 </option>  
+                    <option> 1 </option>  
+                    <option> 2 </option>  
+                    <option> 3 </option>  
+                    <option> 4 </option>  
+                    <option> 5 </option>  
+                    <option> 6 </option>  
+                    <option> 7 </option>  
+                    <option> 8 </option>  
+                    <option> 9 </option>  
+                    <option> 10 </option>  
+                    <option> 11 </option>  
+                    <option> 12 </option>  
+                    <option> 13 </option>  
+                    <option> 14 </option>  
+                    <option> 15 </option>  
+                    <option> 16 </option>  
+                    <option> 17 </option>  
+                    <option> 18 </option>  
+                    <option> 19 </option>  
+                    <option> 20 </option>  
+                    <option> 21 </option>  
+                    <option> 22 </option>  
+                    <option> 23 </option>  
+                </select>  
+                <div id = "embedding-heatmap-0"></div>
+            </div>
+            <div id="embedding-1-container">
+                <select id="embedding-dropdown-1" onchange = "demo.updateEmbPlot(1)">  
+                    <option> ---Choose layer--- </option>  
+                    <option selected> 0 </option>  
+                    <option> 1 </option>  
+                    <option> 2 </option>  
+                    <option> 3 </option>  
+                    <option> 4 </option>  
+                    <option> 5 </option>  
+                    <option> 6 </option>  
+                    <option> 7 </option>  
+                    <option> 8 </option>  
+                    <option> 9 </option>  
+                    <option> 10 </option>  
+                    <option> 11 </option>  
+                    <option> 12 </option>  
+                    <option> 13 </option>  
+                    <option> 14 </option>  
+                    <option> 15 </option>  
+                    <option> 16 </option>  
+                    <option> 17 </option>  
+                    <option> 18 </option>  
+                    <option> 19 </option>  
+                    <option> 20 </option>  
+                    <option> 21 </option>  
+                    <option> 22 </option>  
+                    <option> 23 </option>  
+                </select> 
+                <div id = "embedding-heatmap-1"></div>
+            </div>
+            <div id="embedding-2-container">
+                <select id="embedding-dropdown-2" onchange = "demo.updateEmbPlot(2)">  
+                    <option> ---Choose layer--- </option>  
+                    <option> 0 </option>  
+                    <option> 1 </option>  
+                    <option> 2 </option>  
+                    <option> 3 </option>  
+                    <option> 4 </option>  
+                    <option> 5 </option>  
+                    <option> 6 </option>  
+                    <option> 7 </option>  
+                    <option> 8 </option>  
+                    <option> 9 </option>  
+                    <option> 10 </option>  
+                    <option> 11 </option>  
+                    <option> 12 </option>  
+                    <option> 13 </option>  
+                    <option> 14 </option>  
+                    <option> 15 </option>  
+                    <option> 16 </option>  
+                    <option> 17 </option>  
+                    <option> 18 </option>  
+                    <option> 19 </option>  
+                    <option> 20 </option>  
+                    <option> 21 </option>  
+                    <option> 22 </option>  
+                    <option selected> 23 </option>  
+                </select> 
+                <div id = "embedding-heatmap-2"></div>
+            </div>
+            <div id="embedding-3-container">
+                <select id="embedding-dropdown-3" onchange = "demo.updateEmbPlot(3)">  
+                    <option> ---Choose layer--- </option>  
+                    <option selected> 0 </option>  
+                    <option> 1 </option>  
+                    <option> 2 </option>  
+                    <option> 3 </option>  
+                    <option> 4 </option>  
+                    <option> 5 </option>  
+                    <option> 6 </option>  
+                    <option> 7 </option>  
+                    <option> 8 </option>  
+                    <option> 9 </option>  
+                    <option> 10 </option>  
+                    <option> 11 </option>  
+                    <option> 12 </option>  
+                    <option> 13 </option>  
+                    <option> 14 </option>  
+                    <option> 15 </option>  
+                    <option> 16 </option>  
+                    <option> 17 </option>  
+                    <option> 18 </option>  
+                    <option> 19 </option>  
+                    <option> 20 </option>  
+                    <option> 21 </option>  
+                    <option> 22 </option>  
+                    <option selected> 23 </option>  
+                </select> 
+                <div id = "embedding-heatmap-3"></div>
+            </div>
         </div>
     </div>
     
