@@ -283,8 +283,8 @@ class Demo {
     // plot heatmap with attention matrix
     plotAttention(headData, headId, layerName) {
         const text = headData.map((row, i) => row.map((item, j) => { 
-            return `input: ${this.tokens[i]}`+
-            `<br>output: ${this.tokens[j]}` +
+            return `output: ${this.tokens[i]}`+
+            `<br>input: ${this.tokens[j]}` +
             `<br>attention: ${item.toFixed(5)}`
             }));
             
@@ -303,13 +303,13 @@ class Demo {
                 y: "0.07",
             },
             xaxis: {
-                title: "output attention tokens",
+                title: "input attention tokens",
                 side: "top",
                 tickvals: d3.range(this.tokens.length), 
                 ticktext: this.tokens, 
             },
             yaxis: {
-                title: "input attention tokens",
+                title: "output attention tokens",
                 autorange: 'reversed',
                 tickvals: d3.range(this.tokens.length), 
                 ticktext: this.tokens, 
