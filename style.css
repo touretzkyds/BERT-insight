@@ -34,8 +34,7 @@
     width: 100px;
 }
 
-#embedding-0-container, #embedding-1-container, 
-#embedding-2-container, #embedding-3-container {
+.embeddings-container {
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -45,7 +44,12 @@
     visibility: hidden;
 }
 
-/* style dropdowns */
+.embedding-dropdown {
+    width: 130px;
+}
+
+/* style all dropdowns */
 select {
     text-align: center;
 }
+

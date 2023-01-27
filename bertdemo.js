@@ -270,13 +270,6 @@ class Demo {
             const headData = layerData[0][headId].slice(0, truncateLength).map(i => i.slice(0, truncateLength));
             this.plotAttention(headData, headId, layerName);
         }
-        // const diagonalData = [[],[],[],[]];
-        // for (var h=0; h<4; ++h){
-        //     const headData = layerData[0][h];
-        //     // for (var d=0; d<truncateLength; ++d){
-        //     //     diagonalData[h].push(headData[d][d]);
-        //     // }
-        // }
         return layerData; // for debugging
     } 
 
@@ -329,7 +322,7 @@ class Demo {
         const embedding = [this.model.logitsRawData.intermLayers[
             `bert/encoder/layer_${layerIdx}/attention/self/key/add`
         ][wordIdx]], // expected format is Array(Array)
-            plotTitle = `${wordIdx}: ${this.tokens[wordIdx]}`,
+            plotTitle = `${layerIdx}|${wordIdx}: ${this.tokens[wordIdx]}`,
             plotId = `embedding-heatmap-${plotNum}`;
 
         const z = embedding[0].map((_, colIndex) => embedding.map(row => row[colIndex]));
@@ -342,6 +335,9 @@ class Demo {
         ];
         const layout = {
             title: {text: plotTitle},
+            font: {
+                size: 10,
+              },
             xaxis: {
                 showticklabels: false,
                 ticks: "",
@@ -354,7 +350,13 @@ class Demo {
                 showscale: false
             },
             height: 20 * this.tokens.length,
-            width: 200,
+            width: 130, // bring closer and 
+            margin: {   // eliminate white spaces
+                l: 45,
+                r: 45,
+            },
+            plot_bgcolor:"black",  // remove white- 
+            paper_bgcolor:"#FFF3", // -spaces hiding leaderlines
         };
         if (newPlot) {
             Plotly.newPlot(`${plotId}`, data, layout);
