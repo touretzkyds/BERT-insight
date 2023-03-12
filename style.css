@@ -53,3 +53,10 @@ select {
     text-align: center;
 }
 
+/* style radio buttons */
+.emb-radio-buttons {
+    height: 30px;
+    width: 30px;
+    accent-color: brown;
+    margin-bottom: 10px;
+  }

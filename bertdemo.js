@@ -77,7 +77,8 @@ class Demo {
 
         this.tokens = this.getTokensFromTokenIds(rawData['allTokenIds'][0]
         ).slice(0, truncateLength);
-        this.selectedTokenIds = [8,27];
+        // TODO MOVE THIS reset selected tokens for embedding plots
+        this.embTokens = [8,27,8,27];
 
         const text = z.map((row, i) => row.map((item, _) => { 
             return `id: ${this.tokens.length - i - 1}`+
@@ -134,24 +135,21 @@ class Demo {
         // bind click event
         let plotlyLogits = document.getElementById(plotElemId);
         plotlyLogits.on("plotly_click", (data) => {
-            this.reactToLogitsClick(data, id);
+            this.reactToLogitsClick(data);
         });
     }
 
     // update embedding plots when tokens in logits heatmaps are clicked
     // start logits: plots 0,2 and end logits: plots 1,3
-    reactToLogitsClick(clickData, logPlotId) {
+    reactToLogitsClick(clickData) {
+        // get token clicked on logits plot
+        const tokenId = this.tokens.length - clickData.points[0].pointNumber[0] - 1 // token order reversed in plotly
         // save clicked token id depending on which plot it is clicked in
-        this.selectedTokenIds[logPlotId] = 
-        this.tokens.length - clickData.points[0].pointNumber[0] - 1; // token order reversed in plotly
-        if (logPlotId == 0) {
-            this.updateEmbPlot(0, this.selectedTokenIds[0]);
-            this.updateEmbPlot(2, this.selectedTokenIds[0]);
-        }
-        else {
-            this.updateEmbPlot(1, this.selectedTokenIds[1]);
-            this.updateEmbPlot(3, this.selectedTokenIds[1]);
-        }
+        const embPlotId = document.querySelector('input[name="selected-emb-plot"]:checked').value;
+        this.embTokens[embPlotId] = tokenId;
+
+        // update active embedding plot
+        this.updateEmbPlot(embPlotId);
     }
 
     // initialize array of leader lines
@@ -242,7 +240,7 @@ class Demo {
     }
 
     // show hidden elements ie dropdowns on event call after submit
-    makeElemsVisible(){
+    makeHiddenElemsVisible(){
         const elems = document.getElementsByClassName('hidden').forEach(elem => {
             elem.style.visibility = 'visible';
         });
@@ -260,8 +258,8 @@ class Demo {
         
         // activate attention dropdown and plot attention if dropdown selected
         document.getElementById('attention-heatmaps').style.display = "block";
-        const layerId = dropDown.options[dropDown.selectedIndex].text;
-        const layerName = `bert/encoder/layer_${layerId}/attention/self/Softmax`;
+        const layerNum = dropDown.options[dropDown.selectedIndex].text;
+        const layerName = `bert/encoder/layer_${layerNum}/attention/self/Softmax`;
         const rawData = this.model.logitsRawData;
         const layerData = rawData['intermLayers'][layerName];
         const truncateLength = rawData['tokensLength'] + 5;
@@ -316,14 +314,12 @@ class Demo {
         Plotly.react(`attn-heatmap-head-${headId}`, data, layout);
     }
 
-    plotEmbeddings(newPlot=false, wordIdx=0, layerIdx=0, plotNum=0) { 
+    plotEmbeddings(newPlot=false, tokenId, layer, plotId) { 
         
         // get embedding vector
         const embedding = [this.model.logitsRawData.intermLayers[
-            `bert/encoder/layer_${layerIdx}/attention/self/key/add`
-        ][wordIdx]], // expected format is Array(Array)
-            plotTitle = `${layerIdx}|${wordIdx}: ${this.tokens[wordIdx]}`,
-            plotId = `embedding-heatmap-${plotNum}`;
+            `bert/encoder/layer_${layer}/attention/self/key/add`
+        ][tokenId]]; // expected format is Array(Array)
 
         const z = embedding[0].map((_, colIndex) => embedding.map(row => row[colIndex]));
         const data = [
@@ -334,7 +330,7 @@ class Demo {
             }
         ];
         const layout = {
-            title: {text: plotTitle},
+            title: {text: `${layer}|${tokenId}: ${this.tokens[tokenId]}`},
             font: {
                 size: 10,
               },
@@ -359,22 +355,32 @@ class Demo {
             paper_bgcolor:"#FFF3", // -spaces hiding leaderlines
         };
         if (newPlot) {
-            Plotly.newPlot(`${plotId}`, data, layout);
+            Plotly.newPlot(`embedding-heatmap-${plotId}`, data, layout);
         } else {
-            Plotly.react(`${plotId}`, data, layout);
+            Plotly.react(`embedding-heatmap-${plotId}`, data, layout);
+        }
+    }
+
+    // init emb plot from default values
+    initEmbPlots(){
+        for (let embPlotId=0; embPlotId<4; ++embPlotId){
+            const layerNum = document.getElementById(`embedding-dropdown-${embPlotId}`).value;
+            this.plotEmbeddings(false, this.embTokens[embPlotId], layerNum, embPlotId);
         }
     }
 
     // refresh embedding plots based on dropdown and selected token
-    updateEmbPlot(plotId, tokenId){
-        // get layer id from dropdown
-        const dropdown = document.getElementById(`embedding-dropdown-${plotId}`);
-        const layerId = dropdown.value;
+    updateEmbPlot(embPlotId){
+        // get arguments from demo
+        const tokenId = this.embTokens[embPlotId]
+        const layer = document.getElementById(`embedding-dropdown-${embPlotId}`).value;
+        
         // if no selections made, plot nothing
-        if (layerId === "---Choose layer---") {
+        if (layer === "---Choose layer---") {
             return;
         }
-        this.plotEmbeddings(false, tokenId, layerId, plotId);
+        // plot embeddings with args newplot, token_idx, layer_idx, plot_num
+        this.plotEmbeddings(false, tokenId, layer, embPlotId);
     }
 
     // respond to question answering submit button press
@@ -389,20 +395,16 @@ class Demo {
         // run qna on inputs
         await this.answerQuestion();
 
-        // plot start logits
+        // plot start and end logits
         this.plotLogits(false, 0);
-
-        // plot end logits
         this.plotLogits(false, 1);
 
         // this.embPlotActiveIdx = 1;
         // this.makeTicksClickable();
 
-        // plot embeddings with args newplot, token_idx, layer_idx, plot_num
-        this.updateEmbPlot(0, this.selectedTokenIds[0]);
-        this.updateEmbPlot(1, this.selectedTokenIds[1]);
-        this.updateEmbPlot(2, this.selectedTokenIds[0]);
-        this.updateEmbPlot(3, this.selectedTokenIds[1]);
+        // plot embeddings for the first time
+        this.plotEmbeddings(false, this.embTokens[0], 0, 0);
+        this.initEmbPlots();
         
         // display computed answers in the Answer HTML field
         await this.displayAnswers();
@@ -412,7 +414,7 @@ class Demo {
 
         // show dropdown on first submit button press and 
         // plot attention if a dropdown option is selected on submit
-        this.makeElemsVisible();
+        this.makeHiddenElemsVisible();
         this.plotFromDropdown();
     }
 
