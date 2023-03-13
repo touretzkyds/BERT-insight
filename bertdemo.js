@@ -77,7 +77,8 @@ class Demo {
 
         this.tokens = this.getTokensFromTokenIds(rawData['allTokenIds'][0]
         ).slice(0, truncateLength);
-        // TODO MOVE THIS reset selected tokens for embedding plots
+        // TODO: move this line:
+        // reset selected tokens for embedding plots
         this.embTokens = [8,27,8,27];
 
         const text = z.map((row, i) => row.map((item, _) => { 
@@ -345,7 +346,7 @@ class Demo {
             coloraxis: {
                 showscale: false
             },
-            height: 20 * this.tokens.length,
+            height: 1400,
             width: 130, // bring closer and 
             margin: {   // eliminate white spaces
                 l: 45,
@@ -364,15 +365,14 @@ class Demo {
     // init emb plot from default values
     initEmbPlots(){
         for (let embPlotId=0; embPlotId<4; ++embPlotId){
-            const layerNum = document.getElementById(`embedding-dropdown-${embPlotId}`).value;
-            this.plotEmbeddings(false, this.embTokens[embPlotId], layerNum, embPlotId);
+            this.updateEmbPlot(embPlotId);
         }
     }
 
     // refresh embedding plots based on dropdown and selected token
     updateEmbPlot(embPlotId){
         // get arguments from demo
-        const tokenId = this.embTokens[embPlotId]
+        const tokenId = this.embTokens[embPlotId];
         const layer = document.getElementById(`embedding-dropdown-${embPlotId}`).value;
         
         // if no selections made, plot nothing
