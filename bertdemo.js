@@ -104,6 +104,7 @@ class Demo {
                 showticklabels: false,
                 ticks: "",
                 domain:[0.7, 0.85],
+                fixedrange: true, // disable zoom
             },
             yaxis2: { // yaxis2 helps left align ticks (#1)
                 tickvals: d3.range(this.tokens.length).reverse(), 
@@ -114,6 +115,7 @@ class Demo {
                 side: "right",
                 automargin: true,
                 ticks: "",
+                fixedrange: true, // disable zoom
             },
             plot_bgcolor:"black",  // remove white- 
             paper_bgcolor:"#FFF3", // -spaces hiding leaderlines
@@ -126,12 +128,14 @@ class Demo {
             width: 350,
             // TODO: scale width more for cases with very long tokens
             // const longest_tok_width = tokens.reduce(function (a, b) {return a.length > b.length ? a : b;}).length;
-
+        };
+        const config = {
+            displayModeBar: false, // hide the toolbar 
         };
         if (newPlot) {
-            Plotly.newPlot(`${plotElemId}`, data, layout);
+            Plotly.newPlot(`${plotElemId}`, data, layout, config);
         } else {
-            Plotly.react(`${plotElemId}`, data, layout);
+            Plotly.react(`${plotElemId}`, data, layout, config);
         }
         // bind click event
         let plotlyLogits = document.getElementById(plotElemId);
@@ -295,24 +299,41 @@ class Demo {
                 y: "0.07",
             },
             xaxis: {
-                title: "input attention tokens",
+                title: "attention to input tokens",
                 side: "top",
                 tickvals: d3.range(this.tokens.length), 
                 ticktext: this.tokens, 
+                showspikes: true,
+                spikemode: "across",
+                spikesnap: "cursor",
+                spikedash: "solid",
+                spikecolor: "black",
+                spikethickness: 1,
+                fixedrange: true, // disable zoom
             },
             yaxis: {
-                title: "output attention tokens",
+                title: "composition of output tokens",
                 autorange: 'reversed',
                 tickvals: d3.range(this.tokens.length), 
                 ticktext: this.tokens, 
                 showticklabels: true,
                 tickfont : {size: 10},
+                showspikes: true,
+                spikemode: "across",
+                spikesnap: "cursor",
+                spikedash: "solid",
+                spikecolor: "black",
+                spikethickness: 1,
+                fixedrange: true, // disable zoom
             },
             width: 650,
             height: 650,
         };
+        const config = {
+            displayModeBar: false, // this is the line that hides the bar.
+        };
         // create element if absent
-        Plotly.react(`attn-heatmap-head-${headId}`, data, layout);
+        Plotly.react(`attn-heatmap-head-${headId}`, data, layout, config);
     }
 
     plotEmbeddings(newPlot=false, tokenId, layer, plotId) { 
@@ -338,10 +359,12 @@ class Demo {
             xaxis: {
                 showticklabels: false,
                 ticks: "",
+                fixedrange: true, // disable zoom
             },
             yaxis: {
                 ticks: "",
                 autorange: 'reversed',
+                fixedrange: true, // disable zoom
             },
             coloraxis: {
                 showscale: false
@@ -355,10 +378,13 @@ class Demo {
             plot_bgcolor:"black",  // remove white- 
             paper_bgcolor:"#FFF3", // -spaces hiding leaderlines
         };
+        const config = {
+            displayModeBar: false, // hide the toolbar 
+        };
         if (newPlot) {
-            Plotly.newPlot(`embedding-heatmap-${plotId}`, data, layout);
+            Plotly.newPlot(`embedding-heatmap-${plotId}`, data, layout, config);
         } else {
-            Plotly.react(`embedding-heatmap-${plotId}`, data, layout);
+            Plotly.react(`embedding-heatmap-${plotId}`, data, layout, config);
         }
     }
 
