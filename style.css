@@ -59,4 +59,15 @@ select {
     width: 30px;
     accent-color: brown;
     margin-bottom: 10px;
-  }
+}
+
+/* style submit buttons */
+input[type=submit] {
+    width: 6em;  
+    height: 3em;
+}
+
+/* style threshold slider for answers */
+#answer-threshold {
+    padding: 1%;
+}
