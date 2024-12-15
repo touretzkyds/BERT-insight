@@ -571,7 +571,7 @@
             var origResults = [];
             startIndexes.forEach(function (start) {
                 endIndexes.forEach(function (end) {
-                    if (tokenToOrigMap[start + OUTPUT_OFFSET] && tokenToOrigMap[end + OUTPUT_OFFSET] && end >= start) {
+                    if (tokenToOrigMap[start + OUTPUT_OFFSET] != undefined && tokenToOrigMap[end + OUTPUT_OFFSET] != undefined && end >= start) {
                         var length_2 = end - start + 1;
                         if (length_2 < MAX_ANSWER_LEN) {
                             origResults.push({ start: start, end: end, score: startLogits[start] + endLogits[end] });
