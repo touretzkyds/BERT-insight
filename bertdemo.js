@@ -338,10 +338,20 @@ class Demo {
 
     plotEmbeddings(newPlot=false, tokenId, layer, plotId) { 
         
-        // get embedding vector
+        // get embedding vector from type selected
+        const embType = document.querySelector('input[name="selected-emb-type"]:checked').value;
+        const layerTypes = {
+            0: 'input',
+            1: 'attention',
+            2: 'value'
+        }
+        // if (embType == 0) layerType = 'input'
+        // else if (embType == 1) layerType = 'attention'
+        // else if (embType == 2) layerType = 'value'
+        
         const embedding = [this.model.logitsRawData.intermLayers[
-            `bert/encoder/layer_${layer}/attention/self/key/add`
-        ][tokenId]]; // expected format is Array(Array)
+            `bert/encoder/layer_${layer}/bottleneck/${layerTypes[embType]}/FakeLayerNorm/add`
+        ][0][tokenId]]; // expected format is Array(Array)
 
         const z = embedding[0].map((_, colIndex) => embedding.map(row => row[colIndex]));
         const data = [

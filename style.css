@@ -8,7 +8,7 @@
     display: flex;
 }
 
-#logits-container, #embeddings-container {
+#logits-container, #emb-plots {
     display: flex;
     flex-direction: row;
 }
@@ -34,7 +34,7 @@
     width: 100px;
 }
 
-.embeddings-container {
+.emb-plot-container {
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -54,7 +54,7 @@ select {
 }
 
 /* style radio buttons */
-.emb-radio-buttons {
+.emb-radio-buttons, .emb-type-radio-button {
     height: 30px;
     width: 30px;
     accent-color: brown;

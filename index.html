@@ -41,11 +41,11 @@ Fred was also at the party. He brought his dog with him.
 
                 <label for="question">Enter question:</label><br>
                 <textarea id="question" rows="4" cols="80">
-What instrument did John play?
+Who went to a party?
                 </textarea><br>
                 <span id="answer-threshold">
                     Threshold score for answers:
-                    <input type="range" id="answer-threshold-slider" value="4.39" min="0" max="10" step="0.01" 
+                    <input type="range" id="answer-threshold-slider" value="4.39" min="-10" max="20" step="0.01" 
                         oninput="this.nextElementSibling.value = this.value">
                     <output for="answer-threshold-slider" id="answer-threshold-display">4.39</output>
                 </span>
@@ -124,130 +124,136 @@ What instrument did John play?
             <div id = "leaderlines"></div>
             <div id = "endlogits-heatmap"></div>
         </div>
-        <div id="embeddings-container" class="hidden"> 
-            <div id="embedding-0-container" class="embeddings-container">
-                <input class='emb-radio-buttons' type='radio' name='selected-emb-plot' value='0' checked>
-                <select id="embedding-dropdown-0" class="embedding-dropdown" onchange = "demo.updateEmbPlot(0)">  
-                    <option> ---Choose layer--- </option>  
-                    <option selected> 0 </option>  
-                    <option> 1 </option>  
-                    <option> 2 </option>  
-                    <option> 3 </option>  
-                    <option> 4 </option>  
-                    <option> 5 </option>  
-                    <option> 6 </option>  
-                    <option> 7 </option>  
-                    <option> 8 </option>  
-                    <option> 9 </option>  
-                    <option> 10 </option>  
-                    <option> 11 </option>  
-                    <option> 12 </option>  
-                    <option> 13 </option>  
-                    <option> 14 </option>  
-                    <option> 15 </option>  
-                    <option> 16 </option>  
-                    <option> 17 </option>  
-                    <option> 18 </option>  
-                    <option> 19 </option>  
-                    <option> 20 </option>  
-                    <option> 21 </option>  
-                    <option> 22 </option>  
-                    <option> 23 </option>  
-                </select>  
-                <div id = "embedding-heatmap-0"></div>
-            </div>
-            <div id="embedding-1-container" class="embeddings-container">
-                <input class='emb-radio-buttons' type='radio' name='selected-emb-plot' value='1'>
-                <select id="embedding-dropdown-1" class="embedding-dropdown" onchange = "demo.updateEmbPlot(1)">  
-                    <option> ---Choose layer--- </option>  
-                    <option selected> 0 </option>  
-                    <option> 1 </option>  
-                    <option> 2 </option>  
-                    <option> 3 </option>  
-                    <option> 4 </option>  
-                    <option> 5 </option>  
-                    <option> 6 </option>  
-                    <option> 7 </option>  
-                    <option> 8 </option>  
-                    <option> 9 </option>  
-                    <option> 10 </option>  
-                    <option> 11 </option>  
-                    <option> 12 </option>  
-                    <option> 13 </option>  
-                    <option> 14 </option>  
-                    <option> 15 </option>  
-                    <option> 16 </option>  
-                    <option> 17 </option>  
-                    <option> 18 </option>  
-                    <option> 19 </option>  
-                    <option> 20 </option>  
-                    <option> 21 </option>  
-                    <option> 22 </option>  
-                    <option> 23 </option>  
-                </select> 
-                <div id = "embedding-heatmap-1"></div>
-            </div>
-            <div id="embedding-2-container" class="embeddings-container">
-                <input class='emb-radio-buttons' type='radio' name='selected-emb-plot' value='2'>
-                <select id="embedding-dropdown-2" class="embedding-dropdown" onchange = "demo.updateEmbPlot(2)">  
-                    <option> ---Choose layer--- </option>  
-                    <option> 0 </option>  
-                    <option> 1 </option>  
-                    <option> 2 </option>  
-                    <option> 3 </option>  
-                    <option> 4 </option>  
-                    <option> 5 </option>  
-                    <option> 6 </option>  
-                    <option> 7 </option>  
-                    <option> 8 </option>  
-                    <option> 9 </option>  
-                    <option> 10 </option>  
-                    <option> 11 </option>  
-                    <option> 12 </option>  
-                    <option> 13 </option>  
-                    <option> 14 </option>  
-                    <option> 15 </option>  
-                    <option> 16 </option>  
-                    <option> 17 </option>  
-                    <option> 18 </option>  
-                    <option> 19 </option>  
-                    <option> 20 </option>  
-                    <option> 21 </option>  
-                    <option> 22 </option>  
-                    <option selected> 23 </option>  
-                </select> 
-                <div id = "embedding-heatmap-2"></div>
-            </div>
-            <div id="embedding-3-container" class="embeddings-container">
-                <input class='emb-radio-buttons' type='radio' name='selected-emb-plot' value='3'>
-                <select id="embedding-dropdown-3" class="embedding-dropdown" onchange = "demo.updateEmbPlot(3)">  
-                    <option> ---Choose layer--- </option>  
-                    <option selected> 0 </option>  
-                    <option> 1 </option>  
-                    <option> 2 </option>  
-                    <option> 3 </option>  
-                    <option> 4 </option>  
-                    <option> 5 </option>  
-                    <option> 6 </option>  
-                    <option> 7 </option>  
-                    <option> 8 </option>  
-                    <option> 9 </option>  
-                    <option> 10 </option>  
-                    <option> 11 </option>  
-                    <option> 12 </option>  
-                    <option> 13 </option>  
-                    <option> 14 </option>  
-                    <option> 15 </option>  
-                    <option> 16 </option>  
-                    <option> 17 </option>  
-                    <option> 18 </option>  
-                    <option> 19 </option>  
-                    <option> 20 </option>  
-                    <option> 21 </option>  
-                    <option> 22 </option>  
-                    <option selected> 23 </option>  
-                </select> 
-                <div id = "embedding-heatmap-3"></div>
+        <div id="embeddings-container" class="hidden"> Select embedding layer:  <br>
+            <input class='emb-type-radio-button' type='radio' name='selected-emb-type' value='0' checked> input
+            <input class='emb-type-radio-button' type='radio' name='selected-emb-type' value='1'> attention
+            <input class='emb-type-radio-button' type='radio' name='selected-emb-type' value='2'> value
+            <br> <br> Select plot to update:
+            <div id="emb-plots">
+                <div id="embedding-0-container" class="embeddings-plots"> 
+                    <input class='emb-radio-buttons' type='radio' name='selected-emb-plot' value='0' checked>
+                    <select id="embedding-dropdown-0" class="embedding-dropdown" onchange = "demo.updateEmbPlot(0)">  
+                        <option> ---Choose layer--- </option>  
+                        <option selected> 0 </option>  
+                        <option> 1 </option>  
+                        <option> 2 </option>  
+                        <option> 3 </option>  
+                        <option> 4 </option>  
+                        <option> 5 </option>  
+                        <option> 6 </option>  
+                        <option> 7 </option>  
+                        <option> 8 </option>  
+                        <option> 9 </option>  
+                        <option> 10 </option>  
+                        <option> 11 </option>  
+                        <option> 12 </option>  
+                        <option> 13 </option>  
+                        <option> 14 </option>  
+                        <option> 15 </option>  
+                        <option> 16 </option>  
+                        <option> 17 </option>  
+                        <option> 18 </option>  
+                        <option> 19 </option>  
+                        <option> 20 </option>  
+                        <option> 21 </option>  
+                        <option> 22 </option>  
+                        <option> 23 </option>  
+                    </select>  
+                    <div id = "embedding-heatmap-0"></div>
+                </div>
+                <div id="embedding-1-container" class="embeddings-plots">
+                    <input class='emb-radio-buttons' type='radio' name='selected-emb-plot' value='1'>
+                    <select id="embedding-dropdown-1" class="embedding-dropdown" onchange = "demo.updateEmbPlot(1)">  
+                        <option> ---Choose layer--- </option>  
+                        <option selected> 0 </option>  
+                        <option> 1 </option>  
+                        <option> 2 </option>  
+                        <option> 3 </option>  
+                        <option> 4 </option>  
+                        <option> 5 </option>  
+                        <option> 6 </option>  
+                        <option> 7 </option>  
+                        <option> 8 </option>  
+                        <option> 9 </option>  
+                        <option> 10 </option>  
+                        <option> 11 </option>  
+                        <option> 12 </option>  
+                        <option> 13 </option>  
+                        <option> 14 </option>  
+                        <option> 15 </option>  
+                        <option> 16 </option>  
+                        <option> 17 </option>  
+                        <option> 18 </option>  
+                        <option> 19 </option>  
+                        <option> 20 </option>  
+                        <option> 21 </option>  
+                        <option> 22 </option>  
+                        <option> 23 </option>  
+                    </select> 
+                    <div id = "embedding-heatmap-1"></div>
+                </div>
+                <div id="embedding-2-container" class="embeddings-plots">
+                    <input class='emb-radio-buttons' type='radio' name='selected-emb-plot' value='2'>
+                    <select id="embedding-dropdown-2" class="embedding-dropdown" onchange = "demo.updateEmbPlot(2)">  
+                        <option> ---Choose layer--- </option>  
+                        <option> 0 </option>  
+                        <option> 1 </option>  
+                        <option> 2 </option>  
+                        <option> 3 </option>  
+                        <option> 4 </option>  
+                        <option> 5 </option>  
+                        <option> 6 </option>  
+                        <option> 7 </option>  
+                        <option> 8 </option>  
+                        <option> 9 </option>  
+                        <option> 10 </option>  
+                        <option> 11 </option>  
+                        <option> 12 </option>  
+                        <option> 13 </option>  
+                        <option> 14 </option>  
+                        <option> 15 </option>  
+                        <option> 16 </option>  
+                        <option> 17 </option>  
+                        <option> 18 </option>  
+                        <option> 19 </option>  
+                        <option> 20 </option>  
+                        <option> 21 </option>  
+                        <option> 22 </option>  
+                        <option selected> 23 </option>  
+                    </select> 
+                    <div id = "embedding-heatmap-2"></div>
+                </div>
+                <div id="embedding-3-container" class="embeddings-plots">
+                    <input class='emb-radio-buttons' type='radio' name='selected-emb-plot' value='3'>
+                    <select id="embedding-dropdown-3" class="embedding-dropdown" onchange = "demo.updateEmbPlot(3)">  
+                        <option> ---Choose layer--- </option>  
+                        <option selected> 0 </option>  
+                        <option> 1 </option>  
+                        <option> 2 </option>  
+                        <option> 3 </option>  
+                        <option> 4 </option>  
+                        <option> 5 </option>  
+                        <option> 6 </option>  
+                        <option> 7 </option>  
+                        <option> 8 </option>  
+                        <option> 9 </option>  
+                        <option> 10 </option>  
+                        <option> 11 </option>  
+                        <option> 12 </option>  
+                        <option> 13 </option>  
+                        <option> 14 </option>  
+                        <option> 15 </option>  
+                        <option> 16 </option>  
+                        <option> 17 </option>  
+                        <option> 18 </option>  
+                        <option> 19 </option>  
+                        <option> 20 </option>  
+                        <option> 21 </option>  
+                        <option> 22 </option>  
+                        <option selected> 23 </option>  
+                    </select> 
+                    <div id = "embedding-heatmap-3"></div>
+                </div>
             </div>
         </div>
     </div>
